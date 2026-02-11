@@ -74,18 +74,18 @@ const events: Event[] = [
 
 export default function EventsGrid() {
   return (
-    <section className="py-16">
-      <h2 className="text-center hand-drawn-title text-white mb-4">Event Categories</h2>
-      <p className="text-center text-white/70 mb-12 max-w-2xl mx-auto">
+    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+      <h2 className="text-center hand-drawn-title text-white mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl">Event Categories</h2>
+      <p className="text-center text-white/70 mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-4">
         Explore our diverse range of technical events across multiple domains
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
         {events.map((event, index) => (
           <EventCard key={index} {...event} />
         ))}
       </div>
-      <div className="text-center mt-12">
-        <button className="hand-drawn-button">
+      <div className="text-center mt-8 sm:mt-10 md:mt-12 px-4">
+        <button className="hand-drawn-button text-sm sm:text-base px-6 py-3 md:px-8 md:py-4">
           View All Events
         </button>
       </div>
