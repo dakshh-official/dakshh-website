@@ -10,8 +10,8 @@ interface Stat {
 const stats: Stat[] = [
   { label: 'Total Prize Pool', value: '₹1,000,000+', color: 'text-yellow' },
   { label: 'Participants', value: '5,000+', color: 'text-cyan' },
-  { label: 'Events', value: '50+', color: 'text-green' },
-  { label: 'Colleges', value: '100+', color: 'text-red' },
+  { label: 'Events', value: '20+', color: 'text-green' },
+  { label: 'Colleges', value: '50+', color: 'text-red' },
 ];
 
 export default function StatsSection() {

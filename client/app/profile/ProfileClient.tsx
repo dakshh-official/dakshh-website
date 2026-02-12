@@ -150,8 +150,8 @@ export default function ProfileClient({
                   className="w-full h-full object-cover"
                 />
               </button>
-              <div className="flex-1 text-center sm:text-left">
-                <h1 className="hand-drawn-title text-white text-3xl sm:text-4xl mb-2">
+              <div className="flex flex-col text-center sm:text-left">
+                <h1 className="hand-drawn-title text-white text-4xl! sm:text-4xl mb-2">
                   {profile.username}
                 </h1>
                 <p className="text-cyan text-sm">{profile.email || "No email"}</p>
