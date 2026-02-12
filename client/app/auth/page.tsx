@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { DotOrbit } from "@paper-design/shaders-react";
@@ -22,14 +22,19 @@ function randomCrewmate() {
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/profile";
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl =
+    rawCallbackUrl && rawCallbackUrl !== "/auth" ? rawCallbackUrl : "/";
   const authError = searchParams.get("error");
+  const { status } = useSession();
 
   const [mode, setMode] = useState<AuthMode>("signin");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signUpStep, setSignUpStep] = useState<1 | 2>(1);
-  const [ejecting, setEjecting] = useState(false);
+  const [ejectOutcome, setEjectOutcome] = useState<"success" | "error" | null>(
+    null
+  );
   const [ejectedCrewmate, setEjectedCrewmate] = useState(1);
 
   const [signInEmail, setSignInEmail] = useState("");
@@ -50,14 +55,35 @@ function AuthForm() {
       ? "This email is registered with Email/Password. Please sign in with credentials."
       : null);
 
+  const ejecting = ejectOutcome !== null;
+
   useEffect(() => {
-    if (!ejecting) return;
+    if (!ejectOutcome) return;
     const t = setTimeout(() => {
-      setEjecting(false);
-      setError("Invalid email or password");
-    }, 5500);
+      if (ejectOutcome === "error") {
+        setError("Invalid email or password");
+        setEjectOutcome(null);
+      } else {
+        window.location.assign("/");
+        return;
+      }
+    }, 4200);
     return () => clearTimeout(t);
-  }, [ejecting]);
+  }, [ejectOutcome]);
+
+  useEffect(() => {
+    if (status === "authenticated" && !ejecting) {
+      window.location.replace("/");
+    }
+  }, [status, ejecting]);
+
+  if (status !== "unauthenticated" && !ejecting) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-black">
+        <div className="text-cyan text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,12 +125,12 @@ function AuthForm() {
 
     if (result?.error) {
       setEjectedCrewmate(randomCrewmate());
-      setEjecting(true);
+      setEjectOutcome("error");
       return;
     }
 
-    router.push(callbackUrl);
-    router.refresh();
+    setEjectedCrewmate(randomCrewmate());
+    setEjectOutcome("success");
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -246,16 +272,20 @@ function AuthForm() {
             <div
               className="eject-text-in text-center w-full px-4"
               style={{
-                color: "#FF4655",
+                color: ejectOutcome === "success" ? "#00ff66" : "#FF4655",
                 fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
                 fontWeight: 700,
                 textTransform: "uppercase",
                 textShadow:
-                  "0 0 20px rgba(255, 70, 85, 0.8), 0 2px 4px rgba(0,0,0,0.5)",
+                  ejectOutcome === "success"
+                    ? "0 0 20px rgba(0, 255, 102, 0.85), 0 2px 4px rgba(0,0,0,0.5)"
+                    : "0 0 20px rgba(255, 70, 85, 0.8), 0 2px 4px rgba(0,0,0,0.5)",
                 opacity: 0,
               }}
             >
-              YOU ARE AN IMPOSTER!
+              {ejectOutcome === "success"
+                ? "YOU ARE NOT AN IMPOSTER!"
+                : "YOU ARE AN IMPOSTER!"}
             </div>
           </div>
         </div>

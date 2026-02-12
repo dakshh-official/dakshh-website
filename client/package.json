@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@paper-design/shaders-react": "^0.0.71",
+    "@react-email/render": "^2.0.4",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.34.0",
     "i": "^0.3.7",

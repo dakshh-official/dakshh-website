@@ -108,11 +108,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     redirect({ url, baseUrl }) {
       if (url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/profile`;
+        return `${baseUrl}/`;
       }
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
-      return `${baseUrl}/profile`;
+      return `${baseUrl}/`;
     },
     async jwt({ token, user }) {
       if (user) {
