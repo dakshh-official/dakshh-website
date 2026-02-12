@@ -28,7 +28,7 @@ export default function Footer() {
               Kolkata, West Bengal
             </p>
             <p className="text-white/70 text-xs sm:text-sm">
-              contact@dakshh-hitk.com<br />
+              hitkdakshhoc@gmail.com<br />
               +91 9434883745
             </p>
           </div>
