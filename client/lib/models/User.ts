@@ -11,8 +11,6 @@ export interface IUser {
   avatar?: number;
   emailVerified?: Date;
   verified: boolean;
-  otpCode?: string;
-  otpExpiresAt?: Date;
   amongUsScore?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -76,14 +74,6 @@ const userSchema = new Schema<IUserDocument>(
     verified: {
       type: Boolean,
       default: false,
-    },
-    otpCode: {
-      type: String,
-      required: false,
-    },
-    otpExpiresAt: {
-      type: Date,
-      required: false,
     },
     fullName: {
       type: String,
