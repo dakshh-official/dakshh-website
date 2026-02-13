@@ -1,27 +1,6 @@
 import mongoose, { Schema, model, models } from "mongoose";
 import bcrypt from "bcryptjs";
-
-export interface IUser {
-  _id: mongoose.Types.ObjectId;
-  username: string;
-  email: string;
-  provider: "google" | "credentials";
-  passwordHash?: string;
-  image?: string;
-  avatar?: number;
-  emailVerified?: Date;
-  verified: boolean;
-  otpCode?: string;
-  otpExpiresAt?: Date;
-  amongUsScore?: number;
-  createdAt: Date;
-  updatedAt: Date;
-  fullName?: string;
-  phoneNumber?: string;
-  college?: string;
-  stream?: string;
-  isProfileComplete: boolean;
-}
+import { IUser } from "@/types/interface";
 
 export interface IUserDocument extends IUser, mongoose.Document {
   _id: mongoose.Types.ObjectId;
