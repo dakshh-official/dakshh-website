@@ -1,5 +1,9 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import EventCard from './EventCard';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Event {
   title: string;
@@ -73,8 +77,34 @@ const events: Event[] = [
 ];
 
 export default function EventsGrid() {
+  const [isNavigating, setIsNavigating] = useState(false);
+  const router = useRouter();
+
+  const handleViewAllClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+
+    setTimeout(() => {
+      router.push('/events');
+    }, 1000);
+  };
+
   return (
     <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+      {isNavigating && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300">
+          <div className="relative p-8 rounded-2xl flex flex-col items-center">
+            <Image
+              src="/venting-in.gif"
+              alt="Loading Events"
+              className="object-contain drop-shadow-2xl"
+              height={120}
+              width={120}
+            />
+          </div>
+        </div>
+      )}
+
       <h2 className="text-center hand-drawn-title text-white mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl">Event Categories</h2>
       <p className="text-center text-white/70 mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-4">
         Explore our diverse range of technical events across multiple domains
@@ -84,8 +114,12 @@ export default function EventsGrid() {
           <EventCard key={index} {...event} />
         ))}
       </div>
+
       <div className="text-center mt-8 sm:mt-10 md:mt-12 px-4">
-        <button className="hand-drawn-button text-sm sm:text-base px-6 py-3 md:px-8 md:py-4">
+        <button
+          onClick={handleViewAllClick}
+          className="hand-drawn-button text-sm sm:text-base px-6 py-3 md:px-8 md:py-4 cursor-pointer"
+        >
           View All Events
         </button>
       </div>

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 export interface IUser {
     _id: mongoose.Types.ObjectId;
@@ -16,4 +16,23 @@ export interface IUser {
     college?: string;
     stream?: string;
     isProfileComplete: boolean;
+}
+
+export interface ISpoc {
+    name: string;
+    contact: string;
+}
+
+export interface IEvent {
+    eventName: string;
+    category: "Software" | "Hardware" | "Entrepreneurship";
+    description: string;
+    banner: string;
+    rules: string[];
+    clubs: string[];
+    spocs: ISpoc[];
+    registrations: Types.ObjectId[];
+
+    createdAt: Date;
+    updatedAt: Date;
 }
