@@ -37,6 +37,11 @@ const eventSchema = new Schema({
         type: [String],
         default: [],
     },
+    isTeamEvent: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
     spocs: [
         {
             name: {
@@ -52,7 +57,7 @@ const eventSchema = new Schema({
     registrations: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Registration",
         }
     ]
 },
