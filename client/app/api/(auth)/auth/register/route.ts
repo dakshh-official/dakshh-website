@@ -6,6 +6,7 @@ import { registerApiSchema } from "@/lib/validations/auth";
 import { sendOtpEmail } from "@/lib/auth-mail";
 import { generateOtp, hashOtp, otpExpiryDate } from "@/lib/otp";
 import { isValidDeviceId, setOtpSession } from "@/lib/otp-session-store";
+import { normalizeRoles } from "@/lib/roles";
 
 function humanizeZodMessage(msg: string, field: string): string {
   const lower = msg.toLowerCase();
@@ -135,6 +136,7 @@ export async function POST(request: Request) {
       passwordHash,
       avatar: Math.floor(Math.random() * 10) + 1,
       verified: false,
+      roles: normalizeRoles([], normalizedEmail),
     });
 
     setOtpSession({
