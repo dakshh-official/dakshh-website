@@ -2,6 +2,7 @@ import pandas as pd
 from pymongo import MongoClient, UpdateOne
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -22,6 +23,8 @@ def parse_and_upload_events(file_path):
 
     events_to_upsert = []
     current_event = None
+    
+    now = datetime.utcnow()
 
     for index, row in df.iterrows():
         # Detect New Event
@@ -59,7 +62,8 @@ def parse_and_upload_events(file_path):
                 "isPaidEvent": fees > 0,
                 "fees": fees,
                 "pocs": [],
-                "registrations": [] # Initialized empty to match schema
+                "registrations": [], # Initialized empty to match schema
+                "updatedAt": now
             }
 
         # Add POCs to current event
@@ -78,12 +82,14 @@ def parse_and_upload_events(file_path):
         print(f"Preparing to upload {len(events_to_upsert)} events...")
         
         operations = []
-        for event in events_to_upsert:
-            # We use eventName as the unique filter to prevent duplicates
+        for e in events_to_upsert:
             operations.append(
                 UpdateOne(
-                    {"eventName": event["eventName"]}, 
-                    {"$set": event}, 
+                    {"eventName": e["eventName"]},
+                    {
+                        "$set": e, 
+                        "$setOnInsert": {"createdAt": now}
+                    },
                     upsert=True
                 )
             )
