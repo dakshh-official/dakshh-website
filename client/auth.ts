@@ -5,6 +5,22 @@ import connect from "@/lib/mongoose";
 import User from "@/lib/models/User";
 import { signInSchema } from "@/lib/validations/auth";
 import { sendWelcomeEmail } from "@/lib/auth-mail";
+import { normalizeRoles } from "@/lib/roles";
+
+async function ensureRolesInDb(userId: string, email: string, roles: unknown) {
+  const normalizedRoles = normalizeRoles(roles, email);
+  const hasSameLength =
+    Array.isArray(roles) && roles.length === normalizedRoles.length;
+  const hasSameValues =
+    Array.isArray(roles) &&
+    normalizedRoles.every((role) => roles.includes(role));
+
+  if (!hasSameLength || !hasSameValues) {
+    await User.findByIdAndUpdate(userId, { $set: { roles: normalizedRoles } });
+  }
+
+  return normalizedRoles;
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -39,6 +55,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           image: user.image ?? undefined,
           avatar,
+          roles: await ensureRolesInDb(
+            user._id.toString(),
+            user.email,
+            user.roles
+          ),
         };
       },
     }),
@@ -72,9 +93,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await existing.save();
         }
 
+        const roles = await ensureRolesInDb(
+          existing._id.toString(),
+          existing.email,
+          existing.roles
+        );
+
         user.id = existing._id.toString();
         user.name = existing.username;
         (user as { avatar?: number }).avatar = existing.avatar;
+        (user as { roles?: string[] }).roles = roles;
         return true;
       }
 
@@ -98,11 +126,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         avatar: Math.floor(Math.random() * 10) + 1,
         emailVerified: new Date(),
         verified: true,
+        roles: normalizeRoles([], email),
       });
 
       user.id = created._id.toString();
       user.name = created.username;
       (user as { avatar?: number }).avatar = created.avatar;
+      (user as { roles?: string[] }).roles = normalizeRoles(created.roles, email);
       await sendWelcomeEmail(email);
       return true;
     },
@@ -119,6 +149,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.username = user.name;
         token.avatar = (user as { avatar?: number }).avatar;
+        token.roles = (user as { roles?: string[] }).roles;
+      }
+
+      if (token.id && token.email) {
+        await connect();
+        const dbUser = await User.findById(token.id)
+          .select("roles email")
+          .lean() as { roles?: string[]; email: string } | null;
+
+        if (dbUser?.email) {
+          token.roles = await ensureRolesInDb(
+            token.id as string,
+            dbUser.email,
+            dbUser.roles
+          );
+        }
       }
       return token;
     },
@@ -127,6 +173,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.username = token.username as string;
         session.user.avatar = token.avatar as number | undefined;
+        session.user.roles = token.roles as
+          | ("participant" | "volunteer" | "admin" | "super_admin")[]
+          | undefined;
       }
       return session;
     },
