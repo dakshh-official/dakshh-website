@@ -4,6 +4,7 @@ export interface IUser {
     _id: mongoose.Types.ObjectId;
     username: string;
     email: string;
+    roles: ("participant" | "volunteer" | "admin" | "super_admin")[];
     passwordHash?: string;
     image?: string;
     avatar?: number;

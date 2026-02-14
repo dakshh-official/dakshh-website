@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
+import { resolveDashboardPath } from "@/lib/roles";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -61,6 +62,7 @@ export default function Navbar() {
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
   const resolvedAvatar = profileAvatar ?? session?.user?.avatar ?? 1;
+  const dashboardPath = resolveDashboardPath(session?.user?.roles);
 
   return (
     <nav
@@ -108,6 +110,19 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
+            {dashboardPath && (
+              <Link
+                href={dashboardPath}
+                className="hand-drawn-button text-xs xl:text-sm"
+                style={{
+                  background: "rgba(0, 106, 255, 0.85)",
+                  padding: "0.4rem 0.8rem",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Dashboard
+              </Link>
+            )}
             {status === "loading" ? null : session ? (
               <div className="flex items-center gap-2">
                 <Link
@@ -180,6 +195,15 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              {dashboardPath && (
+                <Link
+                  href={dashboardPath}
+                  className="text-cyan py-2 px-3 text-sm font-semibold hover:text-yellow transition-colors"
+                  onClick={closeMobileMenu}
+                >
+                  Dashboard
+                </Link>
+              )}
               {status === "loading" ? null : session ? (
                 <>
                   <Link

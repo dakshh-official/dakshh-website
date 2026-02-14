@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+import { AmongUsToastProvider } from "@/app/components/ui/among-us-toast";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <Toaster />
-      {children}
+      <AmongUsToastProvider>{children}</AmongUsToastProvider>
     </SessionProvider>
   );
 }

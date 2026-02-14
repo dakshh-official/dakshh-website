@@ -9,6 +9,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       avatar?: number;
+      roles?: ("participant" | "volunteer" | "admin" | "super_admin")[];
     };
   }
 }
@@ -18,5 +19,6 @@ declare module "next-auth/jwt" {
     id?: string;
     username?: string;
     avatar?: number;
+    roles?: ("participant" | "volunteer" | "admin" | "super_admin")[];
   }
 }

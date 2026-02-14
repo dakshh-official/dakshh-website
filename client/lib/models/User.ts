@@ -1,6 +1,7 @@
 import mongoose, { Schema, model, models } from "mongoose";
 import bcrypt from "bcryptjs";
 import { IUser } from "@/types/interface";
+import { USER_ROLES } from "@/lib/roles";
 
 export interface IUserDocument extends IUser, mongoose.Document {
   _id: mongoose.Types.ObjectId;
@@ -23,6 +24,11 @@ const userSchema = new Schema<IUserDocument>(
       unique: true,
       trim: true,
       lowercase: true,
+    },
+    roles: {
+      type: [String],
+      enum: USER_ROLES,
+      default: ["participant"],
     },
     provider: {
       type: String,
