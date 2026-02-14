@@ -1,7 +1,9 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+
+const LOADER_SEEN_KEY = "dakshh_loader_seen";
 
 export default function SpaceLoader() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -9,6 +11,7 @@ export default function SpaceLoader() {
   const [opacity, setOpacity] = useState(1);
   const [visible, setVisible] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [shouldShowLoader, setShouldShowLoader] = useState(false);
   const [welcomeOpacity, setWelcomeOpacity] = useState(0);
   const [toOpacity, setToOpacity] = useState(0);
   const [dakshhOpacity, setDakshhOpacity] = useState(0);
@@ -16,13 +19,30 @@ export default function SpaceLoader() {
 
   useEffect(() => {
     setMounted(true);
+
+    try {
+      const alreadySeen =
+        window.localStorage.getItem(LOADER_SEEN_KEY) === "true";
+      if (alreadySeen) {
+        setShouldShowLoader(false);
+        setVisible(false);
+        document.body.style.overflow = "";
+        document.body.classList.remove("loader-ready");
+        document.body.classList.add("loader-complete");
+        return;
+      }
+      setShouldShowLoader(true);
+    } catch {
+      // If storage is unavailable, fall back to showing loader.
+      setShouldShowLoader(true);
+    }
   }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !mounted) return;
+    if (!canvas || !mounted || !shouldShowLoader) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     let fl = 3;
@@ -121,10 +141,7 @@ export default function SpaceLoader() {
         if (mouse.down) {
           p.az = -0.5;
         }
-        if (
-          p.z > bounds.z.max ||
-          p.z < bounds.z.min
-        ) {
+        if (p.z > bounds.z.max || p.z < bounds.z.min) {
           resetPoint(p);
         }
         p.ox = p.x;
@@ -153,7 +170,7 @@ export default function SpaceLoader() {
         ctx.lineTo(p.osx, p.osy);
         ctx.lineWidth = 2;
         ctx.strokeStyle =
-          'hsla(' + p.hue + ', 100%, ' + p.lightness + '%, ' + p.alpha + ')';
+          "hsla(" + p.hue + ", 100%, " + p.lightness + "%, " + p.alpha + ")";
         ctx.stroke();
       }
       ctx.restore();
@@ -195,26 +212,26 @@ export default function SpaceLoader() {
     loop();
 
     // Event listeners
-    window.addEventListener('resize', resize);
-    canvas.addEventListener('mousemove', mousemove);
-    canvas.addEventListener('mousedown', mousedown);
-    canvas.addEventListener('mouseup', mouseup);
+    window.addEventListener("resize", resize);
+    canvas.addEventListener("mousemove", mousemove);
+    canvas.addEventListener("mousedown", mousedown);
+    canvas.addEventListener("mouseup", mouseup);
 
     // Cleanup
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      window.removeEventListener('resize', resize);
-      canvas.removeEventListener('mousemove', mousemove);
-      canvas.removeEventListener('mousedown', mousedown);
-      canvas.removeEventListener('mouseup', mouseup);
+      window.removeEventListener("resize", resize);
+      canvas.removeEventListener("mousemove", mousemove);
+      canvas.removeEventListener("mousedown", mousedown);
+      canvas.removeEventListener("mouseup", mouseup);
     };
-  }, [mounted]);
+  }, [mounted, shouldShowLoader]);
 
   // Handle text fade in/out sequence - sequential display
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !shouldShowLoader) return;
 
     // WELCOME: fades in at 0.5s, stays until 2.5s, fades out by 3s
     setTimeout(() => setWelcomeOpacity(1), 500);
@@ -230,52 +247,59 @@ export default function SpaceLoader() {
 
     setTimeout(() => setImgOpacity(1), 7000);
     setTimeout(() => setImgOpacity(0), 9000);
-  }, [mounted]);
+  }, [mounted, shouldShowLoader]);
 
   // Handle loader fade out after 7.5 seconds (longer duration)
   useEffect(() => {
+    if (!shouldShowLoader) return;
+
     const timer = setTimeout(() => {
       setOpacity(0);
       setTimeout(() => {
         setVisible(false);
+        try {
+          window.localStorage.setItem(LOADER_SEEN_KEY, "true");
+        } catch {
+          // Ignore storage write failures.
+        }
         // Ensure overflow is restored and mark loader as complete
-        document.body.style.overflow = '';
-        document.body.classList.remove('loader-ready');
-        document.body.classList.add('loader-complete');
+        document.body.style.overflow = "";
+        document.body.classList.remove("loader-ready");
+        document.body.classList.add("loader-complete");
       }, 500); // Wait for fade transition
     }, 9500); // Increased to 7.5 seconds
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [shouldShowLoader]);
 
   // Hide body overflow and show loader immediately on mount
   useEffect(() => {
-    if (mounted) {
-      document.body.style.overflow = 'hidden';
+    if (mounted && shouldShowLoader) {
+      document.body.style.overflow = "hidden";
       // Remove complete class if it exists (for page reloads)
-      document.body.classList.remove('loader-complete');
+      document.body.classList.remove("loader-complete");
       // Add class to show content once loader is ready (after a tiny delay to ensure loader renders first)
       requestAnimationFrame(() => {
-        document.body.classList.add('loader-ready');
+        document.body.classList.add("loader-ready");
       });
     }
     return () => {
       // Don't remove loader-ready on cleanup if loader is complete
-      if (!document.body.classList.contains('loader-complete')) {
-        document.body.style.overflow = '';
-        document.body.classList.remove('loader-ready');
+      if (!document.body.classList.contains("loader-complete")) {
+        document.body.style.overflow = "";
+        document.body.classList.remove("loader-ready");
       }
     };
-  }, [mounted]);
+  }, [mounted, shouldShowLoader]);
 
   // Additional effect to ensure overflow is restored when visible becomes false
   useEffect(() => {
-    if (!visible) {
-      document.body.style.overflow = '';
-      document.body.classList.remove('loader-ready');
-      document.body.classList.add('loader-complete');
+    if (!visible && shouldShowLoader) {
+      document.body.style.overflow = "";
+      document.body.classList.remove("loader-ready");
+      document.body.classList.add("loader-complete");
     }
-  }, [visible]);
+  }, [visible, shouldShowLoader]);
 
   if (!visible) return null;
 
@@ -288,7 +312,7 @@ export default function SpaceLoader() {
         ref={canvasRef}
         className="absolute inset-0 m-auto"
         style={{
-          display: 'block',
+          display: "block",
         }}
       />
       {/* Welcome text overlay - all words in same position, perfectly centered */}
@@ -299,11 +323,11 @@ export default function SpaceLoader() {
             className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"
             style={{
               opacity: welcomeOpacity,
-              fontFamily: 'var(--font-space-grotesk), sans-serif',
-              filter: 'url(#wobbly-text)',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              fontFamily: "var(--font-space-grotesk), sans-serif",
+              filter: "url(#wobbly-text)",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
             }}
           >
             STUDENTS OF
@@ -313,11 +337,11 @@ export default function SpaceLoader() {
             className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"
             style={{
               opacity: toOpacity,
-              fontFamily: 'var(--font-space-grotesk), sans-serif',
-              filter: 'url(#wobbly-text)',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              fontFamily: "var(--font-space-grotesk), sans-serif",
+              filter: "url(#wobbly-text)",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
             }}
           >
             HITK
@@ -327,11 +351,11 @@ export default function SpaceLoader() {
             className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"
             style={{
               opacity: dakshhOpacity,
-              fontFamily: 'var(--font-space-grotesk), sans-serif',
-              filter: 'url(#wobbly-text)',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              fontFamily: "var(--font-space-grotesk), sans-serif",
+              filter: "url(#wobbly-text)",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
             }}
           >
             PRESENTS
@@ -340,29 +364,24 @@ export default function SpaceLoader() {
             className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"
             style={{
               opacity: imgOpacity,
-              fontFamily: 'var(--font-space-grotesk), sans-serif',
-              filter: 'url(#wobbly-text)',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              fontFamily: "var(--font-space-grotesk), sans-serif",
+              filter: "url(#wobbly-text)",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
             }}
           >
-            <Image
-              src="/SHHH.png"
-              alt="SHHH"
-              width={700}
-              height={700}
-            />
+            <Image src="/SHHH.png" alt="SHHH" width={700} height={700} />
           </div>
           <div
             className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"
             style={{
               opacity: dakshhOpacity,
-              fontFamily: 'var(--font-space-grotesk), sans-serif',
-              filter: 'url(#wobbly-text)',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              fontFamily: "var(--font-space-grotesk), sans-serif",
+              filter: "url(#wobbly-text)",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
             }}
           ></div>
         </div>
