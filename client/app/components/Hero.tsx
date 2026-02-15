@@ -6,13 +6,15 @@ import { useSession } from "next-auth/react";
 import LandingEjection from "./LandingEjection";
 import { AnimatePresence, motion } from "framer-motion";
 import { containerVariants, letterVariants } from "@/constants/animation";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const ANIMATIONS_SEEN_KEY = "dakshh_animations_seen";
 
 // Custom hook to safely check if component is mounted on client
 function useIsMounted() {
   return useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false,
   );
@@ -21,6 +23,8 @@ function useIsMounted() {
 export default function Hero() {
   const { status } = useSession();
   const isMounted = useIsMounted();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const router = useRouter();
 
   const [displayHeroSection, setDisplayHeroSection] = useState(false);
   const [shouldShowEjection, setShouldShowEjection] = useState(false);
@@ -73,6 +77,15 @@ export default function Hero() {
     setShouldShowEjection(false);
   };
 
+  const handleViewAllClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+
+    setTimeout(() => {
+      router.push('/events');
+    }, 1000);
+  };
+
   // 🚨 Prevent SSR/CSR mismatch
   if (!isMounted) return null;
 
@@ -80,6 +93,20 @@ export default function Hero() {
     <section className="min-h-screen flex items-center justify-center relative pt-16 md:pt-20 px-4 sm:px-6 lg:px-8">
       {shouldShowEjection && (
         <LandingEjection setDisplayHeroSection={handleEjectionComplete} />
+      )}
+
+      {isNavigating && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300">
+          <div className="relative p-8 rounded-2xl flex flex-col items-center">
+            <Image
+              src="/venting-in.gif"
+              alt="Loading Events"
+              className="object-contain drop-shadow-2xl"
+              height={120}
+              width={120}
+            />
+          </div>
+        </div>
       )}
 
       <AnimatePresence>
@@ -132,12 +159,12 @@ export default function Hero() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center flex-wrap px-4">
-                <Link
-                  href="/events"
+                <button
+                  onClick={handleViewAllClick}
                   className="hand-drawn-button w-full sm:w-auto text-sm sm:text-base px-6 py-3 md:px-8 md:py-4 text-center no-underline"
                 >
                   Browse Events
-                </Link>
+                </button>
 
                 {status !== "authenticated" && (
                   <Link

@@ -89,7 +89,7 @@ const Events = () => {
         />
       </div>
 
-      <div className="relative z-10 h-screen overflow-hidden">
+      <div className="relative z-10 h-full overflow-hidden">
         <Crewmates />
         <div className="relative z-10 pt-24 pb-12 px-4 max-w-7xl mx-auto">
           <h1 className="hand-drawn-title text-4xl sm:text-5xl text-center text-white mb-4">
