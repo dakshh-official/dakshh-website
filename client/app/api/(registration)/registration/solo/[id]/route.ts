@@ -19,10 +19,10 @@ export async function POST(
         const { id } = await params;
         const event = await Event.findById(id) as IEventDocument;
 
-        if (!event.isTeamEvent) {
+        if (event.isTeamEvent) {
             return NextResponse.json({ error: "Not a Solo Event" }, { status: 400 });
         }
-        if (!event.isPaidEvent) {
+        if (event.isPaidEvent) {
             return NextResponse.json({ error: "The Event is a paid event" }, { status: 400 });
         }
 
