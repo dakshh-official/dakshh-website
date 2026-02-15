@@ -9,7 +9,7 @@ export async function GET() {
 
     const events = (await Event.find()
       .select(
-        "_id eventName category description banner clubs date time venue isTeamEvent membersPerTeam",
+        "_id eventName category description banner clubs date time venue isTeamEvent membersPerTeam prizePool",
       )
       .lean()) as EventProps[] | null;
 

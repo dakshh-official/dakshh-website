@@ -14,11 +14,13 @@ type PublicEvent = {
   category: "Software" | "Hardware" | "Entrepreneurship" | string;
   description?: string;
   banner?: string;
+  clubs?: string[];
   date?: string;
   time?: string;
   venue?: string;
   isTeamEvent?: boolean;
   membersPerTeam?: number;
+  prizePool?: string;
 };
 
 const CATEGORIES = ["All", "Software", "Hardware", "Entrepreneurship"];
@@ -85,7 +87,7 @@ const Events = () => {
         />
       </div>
 
-      <div className="relative z-10 h-screen overflow-hidden">
+      <div className="relative z-10 h-full overflow-hidden">
         <Crewmates />
         <div className="relative z-10 pt-24 pb-12 px-4 max-w-7xl mx-auto">
           <h1 className="hand-drawn-title text-4xl sm:text-5xl text-center text-white mb-4">
@@ -145,11 +147,13 @@ const Events = () => {
                     description={ev.description}
                     category={ev.category}
                     banner={ev.banner}
+                    clubs={ev.clubs}
                     date={ev.date}
                     time={ev.time}
                     venue={ev.venue}
                     isTeamEvent={ev.isTeamEvent}
                     membersPerTeam={ev.membersPerTeam}
+                    prizePool={ev.prizePool}
                   />
                 ))
               )}
