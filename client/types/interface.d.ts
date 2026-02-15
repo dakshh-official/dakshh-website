@@ -28,7 +28,7 @@ export interface IPoc {
 
 export interface IEvent {
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
   date: string;
   time: string;
   duration: string;
@@ -52,17 +52,28 @@ export interface IEvent {
 export interface EventProps {
   _id: Types.ObjectId;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
   description: string;
   banner?: string | null;
   clubs: string[];
   __v: number;
 }
 
+const CATEGORIES = [
+  "All",
+  "Software",
+  "Hardware",
+  "Entrepreneurship",
+  "Quiz",
+  "Gaming",
+] as const;
+
+type Category = typeof CATEGORIES[number];
+
 export interface PublicEventProps {
   _id: string;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz";
+  category: Exclude<Category, "All">;
   description: string;
   banner?: string | null;
   clubs: string[];
@@ -79,7 +90,7 @@ export interface PublicEventProps {
 export interface EventByIdProps {
   _id: Types.ObjectId;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
   description: string;
   banner?: string | null;
   rules: string[];

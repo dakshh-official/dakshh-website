@@ -27,7 +27,8 @@ export default function EventCard(props: Props) {
     time,
     venue,
     isTeamEvent,
-    membersPerTeam,
+    minMembersPerTeam,
+    maxMembersPerTeam,
     prizePool,
     featured = false,
     clubs,
@@ -208,7 +209,7 @@ export default function EventCard(props: Props) {
                 <span className="text-white/70 text-sm">
                   Format:{" "}
                   {isTeamEvent
-                    ? `Team (${membersPerTeam ?? "N/A"} members)`
+                    ? `Team (${maxMembersPerTeam ?? "N/A"} members)`
                     : "Individual"}
                 </span>
               </>
