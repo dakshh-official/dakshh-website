@@ -17,7 +17,7 @@ const eventSchema = new Schema({
     },
     category: {
         type: String,
-        enum: ["Software", "Hardware", "Entrepreneurship"],
+        enum: ["Software", "Hardware", "Entrepreneurship", "Quiz"],
         required: true,
     },
     date: {
@@ -70,9 +70,18 @@ const eventSchema = new Schema({
             }
         }
     ],
-    membersPerTeam: {
+    maxMembersPerTeam: {
         type: Number,
         required: true
+    },
+    minMembersPerTeam: {
+        type: Number,
+        required: true
+    },
+    prizePool: {
+        type: Number,
+        required: true,
+        default: 0
     },
     isPaidEvent: {
         type: Boolean,
