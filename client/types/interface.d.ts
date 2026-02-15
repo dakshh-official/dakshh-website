@@ -21,19 +21,29 @@ export interface IUser {
   isProfileComplete: boolean;
 }
 
-export interface ISpoc {
+export interface IPoc {
   name: string;
-  contact: string;
+  mobile: string;
 }
 
 export interface IEvent {
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz";
+  date: string;
+  time: string;
+  duration: string;
+  venue: string;
   description: string;
-  banner: string;
+  banner?: string | null;
   rules: string[];
   clubs: string[];
-  spocs: ISpoc[];
+  isTeamEvent: boolean;
+  pocs: IPoc[];
+  maxMembersPerTeam: number;
+  minMembersPerTeam: number;
+  prizePool: number;
+  isPaidEvent: boolean;
+  fees: number;
   registrations: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -44,7 +54,7 @@ export interface EventProps {
   eventName: string;
   category: "Software" | "Hardware" | "Entrepreneurship";
   description: string;
-  banner: string;
+  banner?: string | null;
   clubs: string[];
   __v: number;
 }
@@ -52,33 +62,34 @@ export interface EventProps {
 export interface PublicEventProps {
   _id: string;
   eventName: string;
-  category: string;
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz";
   description: string;
-  banner: string;
+  banner?: string | null;
   clubs: string[];
   date: string;
   time: string;
   venue: string;
   isTeamEvent: boolean;
-  membersPerTeam: number;
-  prizePool?: string;
+  minMembersPerTeam: number;
+  maxMembersPerTeam: number;
+  prizePool: string;
   __v: number;
 }
 
 export interface EventByIdProps {
   _id: Types.ObjectId;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz";
   description: string;
-  banner: string;
+  banner?: string | null;
   rules: string[];
   clubs: string[];
-  spocs: ISpoc[];
+  pocs: IPpoc[];
   date: string;
   time: string;
   venue: string;
   isTeamEvent: boolean;
   membersPerTeam: number;
-  prizePool?: string;
+  prizePool: string;
   __v: number;
 }
