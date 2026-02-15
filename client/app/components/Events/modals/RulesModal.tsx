@@ -10,7 +10,7 @@ const RulesModal = ({ rules = [], onClose }: any) => {
 
                 <ul className="list-disc list-inside text-gray-300 space-y-2 max-h-64 overflow-y-auto">
                     {rules.map((rule: string, i: number) => (
-                        <li key={i}>{rule}</li>
+                        <div key={i}> {rule} </div>
                     ))}
                 </ul>
 

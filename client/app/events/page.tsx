@@ -99,8 +99,8 @@ const Events = () => {
             Browse events and filter by category or search by name.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-center justify-evenly gap-4 mb-6">
+            {/* <div className="flex gap-2 flex-wrap">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
@@ -110,7 +110,33 @@ const Events = () => {
                   {cat}
                 </button>
               ))}
-            </div>
+            </div> */}
+
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category)}
+              className="
+                w-full sm:w-64
+                px-3 py-2
+                rounded-md
+                bg-black/60
+                border border-white/20
+                text-white
+                text-sm
+                focus:outline-none
+                focus:ring-2 focus:ring-yellow-400
+              "
+            >
+              {CATEGORIES.map((cat) => (
+                <option
+                  key={cat}
+                  value={cat}
+                  className="text-black"
+                >
+                  {cat === "All" ? "All Categories" : cat}
+                </option>
+              ))}
+            </select>
 
             <div className="w-full sm:w-1/3">
               <input

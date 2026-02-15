@@ -94,19 +94,17 @@ const EventHeader = ({ event }: any) => {
       )}
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">
-          {event.eventName}
-        </h1>
-
-        <p className="text-sm sm:text-base text-gray-400">
-          {event.category} • {event.date} • {event.time}
-        </p>
-
-        {event.isTeamEvent && (
-          <p className="text-sm sm:text-base text-blue-400">
-            Team Size: {teamText}
-          </p>
-        )}
+      <h1
+        className="
+          text-xl sm:text-2xl md:text-3xl
+          font-bold text-white
+          break-words
+          leading-tight
+          max-w-full
+        "
+      >
+        {event.eventName}
+      </h1>
       </div>
     </div>
   );

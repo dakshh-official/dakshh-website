@@ -255,7 +255,7 @@ export default function EventCard(props: Props) {
         className="block mt-auto"
       >
         <button className="hand-drawn-button w-full px-3 py-2 text-sm uppercase">
-          Register Now
+          Explore Events
         </button>
       </Link>
     </HandDrawnCard>

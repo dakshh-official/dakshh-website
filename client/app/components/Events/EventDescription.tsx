@@ -101,7 +101,7 @@ const EventDescription = ({ event, onReadMore }: any) => {
 
       {event.isTeamEvent && (
         <p className="text-xs text-blue-400">
-          Team Size: {event.minMembersPerTeam} – {event.maxMembersPerTeam}
+          Team Size: {event.minMembersPerTeam} - {event.maxMembersPerTeam}
         </p>
       )}
 
