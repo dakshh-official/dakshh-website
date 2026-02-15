@@ -3,11 +3,43 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const LOADER_SEEN_KEY = "dakshh_loader_seen";
+const ANIMATIONS_SEEN_KEY = "dakshh_animations_seen";
+
+type Bounds = {
+  x: { min: number; max: number };
+  y: { min: number; max: number };
+  z: { min: number; max: number };
+};
+
+type Vec2 = { x: number; y: number };
+
+type StarPoint = {
+  z: number;
+  x: number;
+  y: number;
+  ox: number;
+  oy: number;
+  oz: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  ax: number;
+  ay: number;
+  az: number;
+  s: number;
+  sx: number;
+  sy: number;
+  os: number;
+  osx: number;
+  osy: number;
+  hue: number;
+  lightness: number;
+  alpha: number;
+};
 
 export default function SpaceLoader() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>(0 as any);
+  const animationRef = useRef<number>(0);
   const [opacity, setOpacity] = useState(1);
   const [visible, setVisible] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -22,13 +54,14 @@ export default function SpaceLoader() {
 
     try {
       const alreadySeen =
-        window.localStorage.getItem(LOADER_SEEN_KEY) === "true";
+        window.sessionStorage.getItem(ANIMATIONS_SEEN_KEY) === "true";
       if (alreadySeen) {
         setShouldShowLoader(false);
         setVisible(false);
         document.body.style.overflow = "";
         document.body.classList.remove("loader-ready");
         document.body.classList.add("loader-complete");
+        window.dispatchEvent(new Event("dakshh:loaderComplete"));
         return;
       }
       setShouldShowLoader(true);
@@ -45,23 +78,23 @@ export default function SpaceLoader() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let fl = 3;
-    let count = 20000; // Many many more stars!
-    let points: any[] = [];
+    const fl = 3;
+    const count = 20000; // Many many more stars!
+    const points: StarPoint[] = [];
     let startSpeed = 2;
     let tick = 0;
     let width: number;
     let height: number;
-    let bounds: any;
-    let vp: { x: number; y: number };
+    let bounds: Bounds;
+    let vp: Vec2;
     let mouse: { x: number; y: number; down: boolean };
-    let canvasOffset: { x: number; y: number };
+    let canvasOffset: Vec2;
 
     function rand(min: number, max: number) {
       return Math.random() * (max - min) + min;
     }
 
-    function resetPoint(p: any, init?: boolean) {
+    function resetPoint(p: Partial<StarPoint>, init?: boolean): StarPoint {
       p.z = init ? rand(0, bounds.z.max) : bounds.z.max;
       p.x = rand(bounds.x.min, bounds.x.max) / (fl / (fl + p.z));
       p.y = rand(bounds.y.min, bounds.y.max) / (fl / (fl + p.z));
@@ -83,7 +116,7 @@ export default function SpaceLoader() {
       p.hue = rand(120, 200);
       p.lightness = rand(70, 100);
       p.alpha = 0;
-      return p;
+      return p as StarPoint;
     }
 
     function create() {
@@ -249,7 +282,7 @@ export default function SpaceLoader() {
     setTimeout(() => setImgOpacity(0), 9000);
   }, [mounted, shouldShowLoader]);
 
-  // Handle loader fade out after 7.5 seconds (longer duration)
+  // Handle loader fade out after ~9.5 seconds
   useEffect(() => {
     if (!shouldShowLoader) return;
 
@@ -257,17 +290,13 @@ export default function SpaceLoader() {
       setOpacity(0);
       setTimeout(() => {
         setVisible(false);
-        try {
-          window.localStorage.setItem(LOADER_SEEN_KEY, "true");
-        } catch {
-          // Ignore storage write failures.
-        }
         // Ensure overflow is restored and mark loader as complete
         document.body.style.overflow = "";
         document.body.classList.remove("loader-ready");
         document.body.classList.add("loader-complete");
+        window.dispatchEvent(new Event("dakshh:loaderComplete"));
       }, 500); // Wait for fade transition
-    }, 9500); // Increased to 7.5 seconds
+    }, 9500); // ~9.5 seconds
 
     return () => clearTimeout(timer);
   }, [shouldShowLoader]);

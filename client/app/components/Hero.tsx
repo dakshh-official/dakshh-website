@@ -7,7 +7,7 @@ import LandingEjection from "./LandingEjection";
 import { AnimatePresence, motion } from "framer-motion";
 import { containerVariants, letterVariants } from "@/constants/animation";
 
-const EJECTION_SEEN_KEY = "dakshh_ejection_seen";
+const ANIMATIONS_SEEN_KEY = "dakshh_animations_seen";
 
 // Custom hook to safely check if component is mounted on client
 function useIsMounted() {
@@ -27,22 +27,48 @@ export default function Hero() {
 
   // Run ONLY on client after mount
   useEffect(() => {
-     
-    const seen = sessionStorage.getItem(EJECTION_SEEN_KEY) === "true";
+    let animationsSeen = false;
+    try {
+      animationsSeen = sessionStorage.getItem(ANIMATIONS_SEEN_KEY) === "true";
+    } catch {
+      animationsSeen = false;
+    }
 
-    if (seen) {
+    if (animationsSeen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayHeroSection(true);
-       
       setShouldShowEjection(false);
-    } else {
-       
-      setShouldShowEjection(true);
+      return;
     }
+
+    // We want the ejection to start only after SpaceLoader finishes.
+    const startEjection = () => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShouldShowEjection(true);
+    };
+
+    if (document.body.classList.contains("loader-complete")) {
+      startEjection();
+      return;
+    }
+
+    const onLoaderComplete = () => {
+      window.removeEventListener("dakshh:loaderComplete", onLoaderComplete);
+      startEjection();
+    };
+
+    window.addEventListener("dakshh:loaderComplete", onLoaderComplete);
+    return () => {
+      window.removeEventListener("dakshh:loaderComplete", onLoaderComplete);
+    };
   }, []);
 
   const handleEjectionComplete = () => {
-    sessionStorage.setItem(EJECTION_SEEN_KEY, "true");
+    try {
+      sessionStorage.setItem(ANIMATIONS_SEEN_KEY, "true");
+    } catch {
+      // Ignore storage write failures.
+    }
     setDisplayHeroSection(true);
     setShouldShowEjection(false);
   };
