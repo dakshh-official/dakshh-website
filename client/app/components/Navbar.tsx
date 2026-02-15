@@ -6,10 +6,13 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { resolveDashboardPath } from "@/lib/roles";
 
+const ANIMATIONS_SEEN_KEY = "dakshh_animations_seen";
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileAvatar, setProfileAvatar] = useState<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -18,6 +21,50 @@ export default function Navbar() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Check if animations are happening (SpaceLoader or LandingEjection)
+  useEffect(() => {
+    const checkAnimationState = () => {
+      // SpaceLoader is running if body has 'loader-ready' class but not 'loader-complete'
+      const hasLoaderReady = document.body.classList.contains("loader-ready");
+      const hasLoaderComplete =
+        document.body.classList.contains("loader-complete");
+
+      // LandingEjection runs after loader-complete but before animations_seen is set
+      let animationsSeen = false;
+      try {
+        animationsSeen = sessionStorage.getItem(ANIMATIONS_SEEN_KEY) === "true";
+      } catch {
+        animationsSeen = false;
+      }
+
+      // Animations are happening if:
+      // 1. SpaceLoader is running (loader-ready but not loader-complete)
+      // 2. LandingEjection is running (loader-complete but animations_seen not set yet)
+      const isAnimatingNow =
+        hasLoaderReady || (hasLoaderComplete && !animationsSeen);
+      setIsAnimating(isAnimatingNow);
+    };
+
+    // Initial check
+    checkAnimationState();
+
+    // Listen for loader complete event
+    const handleLoaderComplete = () => {
+      // Re-check after a short delay to see if LandingEjection is starting
+      setTimeout(checkAnimationState, 100);
+    };
+
+    window.addEventListener("dakshh:loaderComplete", handleLoaderComplete);
+
+    // Also check periodically during the initial load
+    const interval = setInterval(checkAnimationState, 500);
+
+    return () => {
+      window.removeEventListener("dakshh:loaderComplete", handleLoaderComplete);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -65,7 +112,7 @@ export default function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled ? "bg-black/90 backdrop-blur-md" : "bg-transparent"
-      }`}
+      } ${isAnimating ? "pointer-events-none" : ""}`}
     >
       <div className="max-w-1400 mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 md:py-4">
         <div className="flex items-center justify-between">
@@ -148,7 +195,7 @@ export default function Navbar() {
                   Sign Out
                 </button> */}
               </div>
-            ): null}
+            ) : null}
           </div>
 
           <button

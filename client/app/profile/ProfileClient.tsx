@@ -123,6 +123,13 @@ export default function ProfileClient({
 
   const displayAvatar = profile.avatar ?? 1;
 
+  const tabs = [
+    { id: "details", label: "Details" },
+    { id: "teams", label: "Teams" },
+    { id: "events", label: "Events" },
+    { id: "arcade", label: "Arcade" },
+  ] as const;
+
   return (
     <div className="w-full relative" data-main-content>
       <Navbar />
@@ -153,6 +160,7 @@ export default function ProfileClient({
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <button
                 type="button"
+                aria-label="Change avatar"
                 onClick={() => setAvatarModalOpen(true)}
                 disabled={loading}
                 className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shrink-0 border-4 border-cyan hover:border-yellow transition-colors ring-2 ring-white/30 hover:scale-105 disabled:opacity-70"
@@ -178,16 +186,13 @@ export default function ProfileClient({
 
           {/* Navigation Tabs */}
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4 pb-2">
-            {[
-              { id: "details", label: "Details" },
-              { id: "teams", label: "Teams" },
-              { id: "events", label: "Events" },
-              { id: "arcade", label: "Arcade" },
-            ].map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${
+                  tab.id === "arcade" ? "hidden md:inline-flex" : ""
+                } ${
                   activeTab === tab.id
                     ? "bg-cyan text-black scale-105"
                     : "bg-transparent text-white border-white/50 hover:border-cyan hover:text-cyan"
@@ -378,7 +383,7 @@ export default function ProfileClient({
                   My Teams
                 </h2>
                 <p className="text-white/60">
-                  You haven't joined any teams yet.
+                  You haven&apos;t joined any teams yet.
                 </p>
                 <button className="mt-6 hand-drawn-button px-6 py-2 text-sm">
                   Create or Join Team
@@ -438,10 +443,13 @@ export default function ProfileClient({
                   Bored?
                 </h2>
                 <p className="text-cyan text-sm mb-4">Welcome to the Arcade!</p>
+                <p className="text-white/70 text-sm mb-4 md:hidden">
+                  This game is only available on laptops/desktops.
+                </p>
                 <button
                   type="button"
                   onClick={() => setGameOpen(true)}
-                  className="hand-drawn-button w-full py-4 text-lg"
+                  className="hand-drawn-button w-full py-4 text-lg hidden md:block"
                 >
                   PLAY GAME
                 </button>
