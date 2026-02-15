@@ -1,12 +1,11 @@
 import { auth } from "@/auth";
 import Event from "@/lib/models/Events";
 import connect from "@/lib/mongoose";
-import { EventByIdProps } from "@/types/interface";
 import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -18,11 +17,11 @@ export async function GET(
 
     const { id } = await params;
 
-    const event = (await Event.findById(id)
+    const event = await Event.findById(id)
       .select(
-        "_id eventName category description banner rules clubs spocs date time venue isTeamEvent membersPerTeam prizePool",
+        "_id eventName category date time duration venue description banner rules clubs isTeamEvent pocs minMembersPerTeam maxMembersPerTeam isPaidEvent fees prizePool"
       )
-      .lean()) as EventByIdProps | null;
+      .lean();
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 400 });
@@ -33,7 +32,7 @@ export async function GET(
     console.error("Fetch Event Error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

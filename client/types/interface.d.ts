@@ -104,3 +104,14 @@ export interface EventByIdProps {
   prizePool: string;
   __v: number;
 }
+
+export interface IRegistration {
+  eventId: Types.ObjectId;
+  isTeam: boolean;
+  teamId: string;
+  owner: Types.ObjectId;
+  team: Types.ObjectId[];
+  verified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
