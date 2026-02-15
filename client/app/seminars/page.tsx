@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import { DotOrbit } from "@paper-design/shaders-react";
 import Crewmates from "../components/Crewmates";
+import ComingSoon from "../components/ComingSoon";
 
 const page = () => {
   return (
@@ -24,6 +25,7 @@ const page = () => {
       </div>
       <div className="relative z-10 h-full overflow-hidden">
         <Crewmates />
+        <ComingSoon />
       </div>
     </div>
   );
