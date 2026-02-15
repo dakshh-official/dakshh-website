@@ -2,7 +2,7 @@ import { DotOrbit } from '@paper-design/shaders-react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import StatsSection from './components/StatsSection';
-import EventsGrid from './components/EventsGrid';
+// import EventsGrid from './components/EventsGrid';
 import SponsorsSection from './components/SponsorsSection';
 import Footer from './components/Footer';
 import SpaceLoader from './components/SpaceLoader';
@@ -10,7 +10,7 @@ import Crewmates from './components/Crewmates';
 
 export default function Home() {
   return (
-    <div className="w-full h-full relative" data-main-content>
+    <div className="w-full h-full relative overflow-hidden" data-main-content>
       <SpaceLoader />
       <Navbar />
       <div className="fixed inset-0 w-full h-full z-0">
@@ -27,7 +27,7 @@ export default function Home() {
           scale={0.35}
         />
       </div>
-      <div className="relative z-10 min-h-[300vh]">
+      <div className="relative z-10 h-full">
         <Crewmates />
         <div id="home" className="relative z-10">
           <Hero />
@@ -35,9 +35,9 @@ export default function Home() {
         <div id="stats" className="relative z-10">
           <StatsSection />
         </div>
-        <div id="events" className="relative z-10">
+        {/* <div id="events" className="relative z-10">
           <EventsGrid />
-        </div>
+        </div> */}
         <div id="sponsors" className="relative z-10">
           <SponsorsSection />
         </div>

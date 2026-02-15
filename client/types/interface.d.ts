@@ -72,6 +72,7 @@ export interface PublicEventProps {
   isTeamEvent: boolean;
   minMembersPerTeam: number;
   maxMembersPerTeam: number;
+  prizePool: string;
   __v: number;
 }
 
@@ -84,5 +85,11 @@ export interface EventByIdProps {
   rules: string[];
   clubs: string[];
   pocs: IPpoc[];
+  date: string;
+  time: string;
+  venue: string;
+  isTeamEvent: boolean;
+  membersPerTeam: number;
+  prizePool: string;
   __v: number;
 }

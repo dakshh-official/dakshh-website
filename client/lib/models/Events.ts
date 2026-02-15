@@ -3,17 +3,18 @@ import mongoose, { model, Schema } from "mongoose";
 import { models } from "mongoose";
 
 export interface IEventDocument extends IEvent, mongoose.Document {
-    _id: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId;
 }
 
-const eventSchema = new Schema({
+const eventSchema = new Schema(
+  {
     eventName: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 30,
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 30,
     },
     category: {
         type: String,
@@ -21,54 +22,54 @@ const eventSchema = new Schema({
         required: true,
     },
     date: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     time: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     duration: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     venue: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     description: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
     },
     banner: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
     },
     rules: {
-        type: [String],
-        default: [],
+      type: [String],
+      default: [],
     },
     clubs: {
-        type: [String],
-        default: [],
+      type: [String],
+      default: [],
     },
     isTeamEvent: {
-        type: Boolean,
-        required: true,
-        default: false
+      type: Boolean,
+      required: true,
+      default: false,
     },
     pocs: [
-        {
-            name: {
-                type: String,
-                required: true
-            },
-            mobile: {
-                type: String,
-                required: true
-            }
-        }
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        mobile: {
+          type: String,
+          required: true,
+        },
+      },
     ],
     maxMembersPerTeam: {
         type: Number,
@@ -79,29 +80,32 @@ const eventSchema = new Schema({
         required: true
     },
     prizePool: {
-        type: Number,
+        type: String,
         required: true,
         default: 0
     },
     isPaidEvent: {
-        type: Boolean,
-        required: true
+      type: Boolean,
+      required: true,
     },
     fees: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
+    },
+    prizePool: {
+      type: String,
+      default: "",
     },
     registrations: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Registration",
-        }
-    ]
-},
-    { timestamps: true }
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Registration",
+      },
+    ],
+  },
+  { timestamps: true },
 );
 
-const Event =
-    models.Event ?? model<IEventDocument>("Event", eventSchema);
+const Event = models.Event ?? model<IEventDocument>("Event", eventSchema);
 
 export default Event;
