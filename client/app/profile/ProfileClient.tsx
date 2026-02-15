@@ -133,6 +133,13 @@ export default function ProfileClient({
 
   const displayAvatar = profile.avatar ?? 1;
 
+  const tabs = [
+    { id: "details", label: "Details" },
+    { id: "teams", label: "Teams" },
+    { id: "events", label: "Events" },
+    { id: "arcade", label: "Arcade" },
+  ] as const;
+
   return (
     <div className="w-full relative" data-main-content>
       <Navbar />
@@ -227,6 +234,8 @@ export default function ProfileClient({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${
+                  tab.id === "arcade" ? "hidden md:inline-flex" : ""
+                } ${
                   activeTab === tab.id
                     ? "bg-cyan text-black scale-105"
                     : "bg-transparent text-white border-white/50 hover:border-cyan hover:text-cyan"
@@ -477,10 +486,13 @@ export default function ProfileClient({
                   Bored?
                 </h2>
                 <p className="text-cyan text-sm mb-4">Welcome to the Arcade!</p>
+                <p className="text-white/70 text-sm mb-4 md:hidden">
+                  This game is only available on laptops/desktops.
+                </p>
                 <button
                   type="button"
                   onClick={() => setGameOpen(true)}
-                  className="hand-drawn-button w-full py-4 text-lg"
+                  className="hand-drawn-button w-full py-4 text-lg hidden md:block"
                 >
                   PLAY GAME
                 </button>

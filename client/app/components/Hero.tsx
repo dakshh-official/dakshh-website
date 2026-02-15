@@ -8,13 +8,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { containerVariants, letterVariants } from "@/constants/animation";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import CountdownTimer from "./CountdownTimer";
 
 const ANIMATIONS_SEEN_KEY = "dakshh_animations_seen";
 
 // Custom hook to safely check if component is mounted on client
 function useIsMounted() {
   return useSyncExternalStore(
-    () => () => { },
+    () => () => {},
     () => true,
     () => false,
   );
@@ -82,7 +83,7 @@ export default function Hero() {
     setIsNavigating(true);
 
     setTimeout(() => {
-      router.push('/events');
+      router.push("/events");
     }, 1000);
   };
 
@@ -147,10 +148,23 @@ export default function Hero() {
               </p>
             </div>
 
+            {/* Countdown Timer */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="mb-6 md:mb-8"
+            >
+              <CountdownTimer
+                targetDate={new Date("2026-03-13T09:00:00")}
+                title="Event Starts In"
+              />
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
               className="mt-6 md:mt-8"
             >
               <p className="text-base sm:text-lg md:text-xl mb-6 md:mb-8 text-white/90 max-w-2xl mx-auto px-4">
