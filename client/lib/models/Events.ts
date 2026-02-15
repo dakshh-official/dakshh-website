@@ -79,11 +79,6 @@ const eventSchema = new Schema(
         type: Number,
         required: true
     },
-    prizePool: {
-        type: String,
-        required: true,
-        default: 0
-    },
     isPaidEvent: {
       type: Boolean,
       required: true,
@@ -94,7 +89,7 @@ const eventSchema = new Schema(
     },
     prizePool: {
       type: String,
-      default: "",
+      default: "TBD",
     },
     registrations: [
       {

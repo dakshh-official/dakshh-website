@@ -8,7 +8,7 @@ import Image from 'next/image';
 interface Event {
   title: string;
   description: string;
-  category: string;
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
   prizePool?: string;
   teams?: string;
   featured?: boolean;
@@ -18,7 +18,7 @@ const events: Event[] = [
   {
     title: 'Hydro-Launch Challenge',
     description: 'Build and launch innovative hydro-powered models',
-    category: 'Aviation',
+    category: 'Hardware',
     prizePool: '₹TBA',
     teams: '50+ Teams',
     featured: true
@@ -26,7 +26,7 @@ const events: Event[] = [
   {
     title: 'Code Red Hackathon',
     description: '48-hour marathon to build innovative solutions',
-    category: 'Coding',
+    category: 'Software',
     prizePool: '₹TBA',
     teams: '100+ Teams',
     featured: true
@@ -34,7 +34,7 @@ const events: Event[] = [
   {
     title: 'Robo-Wars Championship',
     description: 'Battle of bots in intense combat arena',
-    category: 'Robotics',
+    category: 'Hardware',
     prizePool: '₹TBA',
     teams: '30+ Teams',
     featured: true
@@ -56,21 +56,21 @@ const events: Event[] = [
   {
     title: 'Competitive Programming',
     description: 'Algorithm and data structure challenges',
-    category: 'Coding',
+    category: 'Software',
     prizePool: '₹TBA',
     teams: '500+ Participants'
   },
   {
     title: 'Drone Hurdle Race',
     description: 'Navigate drones through challenging obstacles',
-    category: 'Aviation',
+    category: 'Hardware',
     prizePool: '₹TBA',
     teams: '40+ Teams'
   },
   {
     title: 'Robo Soccer',
     description: 'Autonomous robots compete in soccer matches',
-    category: 'Robotics',
+    category: 'Hardware',
     prizePool: '₹TBA',
     teams: '25+ Teams'
   },
@@ -110,9 +110,9 @@ export default function EventsGrid() {
         Explore our diverse range of technical events across multiple domains
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
-        {events.map((event, index) => (
+        {/* {events.map((event, index) => (
           <EventCard key={index} {...event} />
-        ))}
+        ))} */}
       </div>
 
       <div className="text-center mt-8 sm:mt-10 md:mt-12 px-4">

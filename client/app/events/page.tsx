@@ -11,25 +11,27 @@ import EventCard from "../components/EventCard";
 type PublicEvent = {
   _id: string;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | string;
-  description?: string;
-  banner?: string;
-  clubs?: string[];
-  date?: string;
-  time?: string;
-  venue?: string;
-  isTeamEvent?: boolean;
-  membersPerTeam?: number;
-  prizePool?: string;
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Gaming" | "Quiz";
+  description: string;
+  banner: string;
+  clubs: string[];
+  date: string;
+  time: string;
+  venue: string;
+  isTeamEvent: boolean;
+  maxMembersPerTeam: number;
+  minMembersPerTeam: number;
+  prizePool: string;
 };
 
-const CATEGORIES = ["All", "Software", "Hardware", "Entrepreneurship"];
+const CATEGORIES = ["All", "Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"] as const;
+type Category = typeof CATEGORIES[number];
 
 const Events = () => {
   const [events, setEvents] = useState<PublicEvent[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("All");
+  const [category, setCategory] = useState<Category>("All");
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -152,7 +154,8 @@ const Events = () => {
                     time={ev.time}
                     venue={ev.venue}
                     isTeamEvent={ev.isTeamEvent}
-                    membersPerTeam={ev.membersPerTeam}
+                    minMembersPerTeam={ev.minMembersPerTeam}
+                    maxMembersPerTeam={ev.maxMembersPerTeam}
                     prizePool={ev.prizePool}
                   />
                 ))
