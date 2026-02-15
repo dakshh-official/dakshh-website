@@ -5,7 +5,7 @@ import RulesModal from './RulesModal';
 import PocModal from './PocModal';
 import ReadMoreModal from './ReadMoreModal';
 
-const EventInfo = ({ event, registering, registerForSoloEvent }: any) => {
+const EventInfo = ({ event, registering, registerForEvent }: any) => {
     const [showRules, setShowRules] = useState(false);
     const [showPoc, setShowPoc] = useState(false);
     const [showDesc, setShowDesc] = useState(false);
@@ -50,7 +50,7 @@ const EventInfo = ({ event, registering, registerForSoloEvent }: any) => {
                     <button
                         className="ml-auto px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold cursor-pointer"
                         disabled={registering}
-                        onClick={registerForSoloEvent}
+                        onClick={registerForEvent}
                     >
                         Register Now
                     </button>
