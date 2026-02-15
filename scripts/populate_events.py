@@ -2,19 +2,18 @@ import pandas as pd
 from pymongo import MongoClient, UpdateOne
 import os
 from dotenv import load_dotenv
-from datetime import datetime
 
 load_dotenv()
 
 # --- Configuration ---
-MONGO_URI = os.getenv("MONGO_URI") # e.g., mongodb://localhost:27017
+MONGODB_URI = os.getenv("MONGODB_URI") # e.g., mongodb://localhost:27017
 DB_NAME = os.getenv("DB_NAME") # Change to your actual DB name
 COLLECTION_NAME = os.getenv("COLLECTION_NAME") # Mongoose usually pluralizes 'Event' to 'events'
-FILE_PATH = "events.xlsx"
+FILE_PATH = "test.xlsx"
 
 def parse_and_upload_events(file_path):
     print("Connecting to MongoDB...")
-    client = MongoClient(MONGO_URI)
+    client = MongoClient(MONGODB_URI)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
 
@@ -23,83 +22,84 @@ def parse_and_upload_events(file_path):
 
     events_to_upsert = []
     current_event = None
-    
-    now = datetime.utcnow()
 
     for index, row in df.iterrows():
-        # Detect New Event
+
+        # Detect new event
         if pd.notna(row["Event Name"]):
             if current_event:
                 events_to_upsert.append(current_event)
 
-            members_per_team = int(row["Members per team (in number)"])
-            fees = float(row.get("Fees", 0))
+            # Safe numeric parsing
+            min_members = int(row.get("Minimum members per team", 1) or 1)
+            max_members = int(row.get("Maximum members per team", min_members) or min_members)
+            fees = float(row.get("Fees", 0) or 0)
 
-            # Rules logic
+            # Rules
             rules_list = []
-            if pd.notna(row["Rules"]):
-                rules_list = [r.strip() for r in str(row["Rules"]).split("\n") if r.strip()]
+            if pd.notna(row.get("Rules")):
+                rules_list = [
+                    r.strip() for r in str(row["Rules"]).split("\n") if r.strip()
+                ]
 
-            # Clubs logic
+            # Clubs
             clubs_list = []
-            if pd.notna(row["Club"]):
-                clubs_list = [c.strip() for c in str(row["Club"]).split(",")]
+            if pd.notna(row.get("Club")):
+                clubs_list = [
+                    c.strip() for c in str(row["Club"]).split(",") if c.strip()
+                ]
 
-            # Create document matching your Schema
             current_event = {
                 "eventName": str(row["Event Name"]).strip(),
                 "category": str(row["Category"]).strip(),
-                "date": str(row["Date (DD/MM/YY)"]),
-                "time": str(row["Time (hh:mm)"]),
-                "duration": str(row["Duration"]),
-                "venue": str(row["Venue"]),
+                "date": str(row["Date (DD/MM/YY)"]).strip(),
+                "time": str(row["Time (hh:mm)"]).strip(),
+                "duration": str(row["Duration"]).strip(),
+                "venue": str(row["Venue"]).strip(),
                 "description": str(row["Description"]).strip(),
                 "banner": "",
                 "rules": rules_list,
                 "clubs": clubs_list,
-                "isTeamEvent": members_per_team > 1,
-                "membersPerTeam": members_per_team,
+                "isTeamEvent": max_members > 1,
+                "minMembersPerTeam": min_members,
+                "maxMembersPerTeam": max_members,
                 "isPaidEvent": fees > 0,
                 "fees": fees,
+                "prizePool": "TBD",
                 "pocs": [],
-                "registrations": [], # Initialized empty to match schema
-                "updatedAt": now
+                "registrations": []
             }
 
-        # Add POCs to current event
-        if current_event and pd.notna(row["POC name"]):
+        # Add POCs
+        if current_event and pd.notna(row.get("POC name")):
             current_event["pocs"].append({
                 "name": str(row["POC name"]).strip(),
-                "mobile": str(row["POC mobile"])
+                "mobile": str(row["POC mobile"]).strip()
             })
 
-    # Add the last event from the loop
     if current_event:
         events_to_upsert.append(current_event)
 
     # --- Database Operation ---
     if events_to_upsert:
-        print(f"Preparing to upload {len(events_to_upsert)} events...")
-        
-        operations = []
-        for e in events_to_upsert:
-            operations.append(
-                UpdateOne(
-                    {"eventName": e["eventName"]},
-                    {
-                        "$set": e, 
-                        "$setOnInsert": {"createdAt": now}
-                    },
-                    upsert=True
-                )
+        print(f"Uploading {len(events_to_upsert)} events...")
+
+        operations = [
+            UpdateOne(
+                {"eventName": e["eventName"]},
+                {"$set": e},
+                upsert=True
             )
+            for e in events_to_upsert
+        ]
 
         result = collection.bulk_write(operations)
-        print(f"Successfully processed events!")
-        print(f"- Inserted: {result.upserted_count}")
-        print(f"- Updated: {result.modified_count}")
+
+        print("Upload complete!")
+        print(f"Inserted: {result.upserted_count}")
+        print(f"Modified: {result.modified_count}")
     else:
-        print("No events found to upload.")
+        print("No events found.")
 
     client.close()
 
