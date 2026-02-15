@@ -65,6 +65,14 @@
 'use client';
 
 const EventDescription = ({ event, onReadMore }: any) => {
+   if (!event?.description) {
+    return (
+      <p className="text-sm text-neutral-400">
+        No description available.
+      </p>
+    );
+  }
+
   const short =
     event.description.length > 220
       ? event.description.slice(0, 220) + '...'

@@ -45,7 +45,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string } >}
 ) {
   try {
     const session = await auth();
@@ -55,7 +55,7 @@ export async function GET(
 
     await connect();
 
-    const { id } = params;
+    const { id } = await params;
 
     const event = await Event.findById(id)
       .select(
