@@ -36,8 +36,28 @@ const registrationSchema = new Schema(
         verified: {
             type: Boolean,
             required: true,
-            default: false,
+            default: false
         },
+        checkedIn: {
+            type: Boolean,
+            required: true,
+            default: false
+        },
+        checkedInAt: {
+            type: Date,
+        },
+        checkedInBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+        foodServedCount: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        lastFoodServedAt: {
+            type: Date,
+        }
     },
     { timestamps: true }
 );
