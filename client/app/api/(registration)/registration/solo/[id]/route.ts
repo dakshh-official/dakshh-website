@@ -21,7 +21,7 @@ export async function POST(
 
         const existingRegistration = await Registration.findOne({
             eventId: event._id,
-            owner: session.user.id,
+            participant: session.user.id,
         });
 
         if (existingRegistration) {
@@ -40,7 +40,7 @@ export async function POST(
 
         const newRegistration = new Registration({
             eventId: event._id,
-            owner: session.user.id,
+            participant: session.user.id,
             verified: true
         });
 

@@ -12,27 +12,20 @@ const registrationSchema = new Schema(
             ref: "Event",
             required: true,
         },
-        isTeam: {
+        isInTeam: {
             type: Boolean,
             required: true,
             default: false,
         },
         teamId: {
-            type: String,
-            unique: true,
-            sparse: true
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Team"
         },
-        owner: {
+        participant: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
-        team: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
-            },
-        ],
         verified: {
             type: Boolean,
             required: true,
