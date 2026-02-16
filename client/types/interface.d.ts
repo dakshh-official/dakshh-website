@@ -109,16 +109,24 @@ export interface EventByIdProps {
 
 export interface IRegistration {
   eventId: Types.ObjectId;
-  isTeam: boolean;
-  teamId?: string;
-  owner: Types.ObjectId;
-  team: Types.ObjectId[];
+  isInTeam: boolean;
+  teamId?: Types.ObjectId;
+  participant: Types.ObjectId;
   verified: boolean;
   checkedIn: boolean;
   checkedInAt?: Date;
   checkedInBy?: Types.ObjectId;
   foodServedCount: number;
   lastFoodServedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ITeam {
+  eventId: Types.ObjectId;
+  teamCode: string;
+  teamLeader: Types.ObjectId;
+  team: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -131,15 +139,27 @@ export interface RegiEventProps {
   date: string;
   time: string;
   venue: string;
+  maxMembersPerTeam?: number;
+  maxMembersPerTeam?: number;
 }
 
 export interface Registration {
   _id: string;
   eventId: RegiEventProps
-  isTeam: boolean,
-  owner: string;
+  isInTeam: boolean,
+  participant: string;
+  verified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface Team {
+  _id: string;
+  eventId: RegiEventProps
+  teamLeader: string;
+  teamCode: string;
   team: string[];
-  verified: boolean
   createdAt: string;
   updatedAt: string;
   __v: number;

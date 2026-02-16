@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import generateCode from "@/lib/generateTeamID";
 import Event, { IEventDocument } from "@/lib/models/Events";
 import Registration from "@/lib/models/Registrations";
+import Team from "@/lib/models/Team";
 import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 
@@ -22,7 +23,7 @@ export async function POST(
 
         const existingRegistration = await Registration.findOne({
             eventId: event._id,
-            owner: session.user.id,
+            participant: session.user.id,
         });
 
         if (existingRegistration) {
@@ -41,25 +42,34 @@ export async function POST(
 
         const newCode = `DAKSHH-${generateCode()}`;
 
-        const newRegistration = new Registration({
+        const newTeam = new Team({
             eventId: event._id,
-            isTeam: true,
-            teamId: newCode,
-            owner: session.user.id,
-            verified: true
+            teamCode: newCode,
+            teamLeader: session.user.id,
         });
+
+        let newRegistration;
+        if(newTeam) {
+            newRegistration = new Registration({
+                eventId: event._id,
+                isInTeam: true,
+                teamId: newTeam._id,
+                participant: session.user.id,
+                verified: true
+            });
+        }
 
         if (newRegistration) {
             event.registrations.push(newRegistration._id);
-            await Promise.all([newRegistration.save(), event.save()]);
+            await Promise.all([newRegistration.save(), event.save(), newTeam.save()]);
         }
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             message: `Registered in ${event.eventName} Successfully!`,
             eventId: newRegistration.teamId
         }, { status: 201 });
     } catch (error) {
-        console.error("Registering in Solo Event Error:", error);
+        console.error("Creating Team Error:", error);
         return NextResponse.json(
             { error: "Internal Server Error" },
             { status: 500 },

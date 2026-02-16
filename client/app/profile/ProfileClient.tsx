@@ -9,6 +9,7 @@ import AvatarModal from "./AvatarModal";
 import AmongUsGame from "./AmongUsGame";
 import { DotOrbit } from "@paper-design/shaders-react";
 import EventsTab from "../components/Profile/EventsTab";
+import TeamsTab from "../components/Profile/TeamsTab";
 
 interface ProfileData {
   username: string;
@@ -412,18 +413,7 @@ export default function ProfileClient({
             )}
 
             {activeTab === "teams" && (
-              <HandDrawnCard className="p-6 sm:p-8 text-center min-h-75 flex flex-col items-center justify-center">
-                <div className="text-6xl mb-4">👥</div>
-                <h2 className="hand-drawn-title text-white text-2xl mb-2">
-                  My Teams
-                </h2>
-                <p className="text-white/60">
-                  You haven&apos;t joined any teams yet.
-                </p>
-                <button className="mt-6 hand-drawn-button px-6 py-2 text-sm">
-                  Create or Join Team
-                </button>
-              </HandDrawnCard>
+              <TeamsTab />
             )}
 
             {activeTab === "events" && (
