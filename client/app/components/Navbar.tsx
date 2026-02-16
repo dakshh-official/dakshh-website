@@ -50,11 +50,11 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/#home" },
-    { name: "Sponsors", href: "/#sponsors" },
+    // { name: "Sponsors", href: "/#sponsors" },
     { name: "Schedule", href: "/schedule" },
     { name: "Events", href: "/events" },
     { name: "Seminars", href: "/seminars" },
-    { name: "Contact", href: "/#contact" },
+    // { name: "Contact", href: "/#contact" },
   ];
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);

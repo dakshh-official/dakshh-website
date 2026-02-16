@@ -108,8 +108,8 @@ export default function EventCard(props: Props) {
 
       {/* Event Details Section - Vertical Stack */}
       <div className="flex flex-col gap-2 mb-4">
-        {/* Date + Time + Venue (single row) */}
-        {(date || time || venue) && (
+        {/* Date + Time (single row) */}
+        {(date || time) && (
           <div className="flex items-center gap-2 flex-wrap">
             {date && (
               <>
@@ -156,95 +156,85 @@ export default function EventCard(props: Props) {
                 <span className="text-white/70 text-sm">{time}</span>
               </>
             )}
-
-            {(date || time) && venue && (
-              <span className="text-white/40 text-xs">•</span>
-            )}
-
-            {venue && (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-yellow shrink-0"
-                >
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span className="text-white/70 text-sm">{venue}</span>
-              </>
-            )}
           </div>
         )}
 
-        {/* Format + Prizepool (single row) */}
-        {(typeof isTeamEvent !== "undefined" || hasPrizePool) && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {typeof isTeamEvent !== "undefined" && (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-cyan shrink-0"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                <span className="text-white/70 text-sm">
-                  Format:{" "}
-                  {isTeamEvent
-                    ? `Team (${maxMembersPerTeam ?? "N/A"} members)`
-                    : "Individual"}
-                </span>
-              </>
-            )}
+        {/* Venue (next line) */}
+        {venue && (
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-yellow shrink-0"
+            >
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span className="text-white/70 text-sm">{venue}</span>
+          </div>
+        )}
 
-            {typeof isTeamEvent !== "undefined" && hasPrizePool && (
-              <span className="text-white/40 text-xs">•</span>
-            )}
+        {/* Format (single row) */}
+        {typeof isTeamEvent !== "undefined" && (
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-cyan shrink-0"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span className="text-white/70 text-sm">
+              Format:{" "}
+              {isTeamEvent
+                ? `Team (${minMembersPerTeam} - ${maxMembersPerTeam} members)`
+                : "Individual"}
+            </span>
+          </div>
+        )}
 
-            {hasPrizePool && (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-yellow shrink-0"
-                >
-                  <path d="M8 21h8" />
-                  <path d="M12 17v4" />
-                  <path d="M7 4h10" />
-                  <path d="M17 4v6a5 5 0 0 1-10 0V4" />
-                  <path d="M5 6a2 2 0 0 0 2 2" />
-                  <path d="M19 6a2 2 0 0 1-2 2" />
-                </svg>
-                <span className="text-white/70 text-sm">
-                  Prizepool: {prizePool}
-                </span>
-              </>
-            )}
+        {/* Prizepool (separate row) */}
+        {hasPrizePool && (
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-yellow shrink-0"
+            >
+              <path d="M8 21h8" />
+              <path d="M12 17v4" />
+              <path d="M7 4h10" />
+              <path d="M17 4v6a5 5 0 0 1-10 0V4" />
+              <path d="M5 6a2 2 0 0 0 2 2" />
+              <path d="M19 6a2 2 0 0 1-2 2" />
+            </svg>
+            <span className="text-white/70 text-sm">
+              Prizepool: {prizePool}
+            </span>
           </div>
         )}
       </div>
@@ -255,7 +245,7 @@ export default function EventCard(props: Props) {
         className="block mt-auto"
       >
         <button className="hand-drawn-button w-full px-3 py-2 text-sm uppercase">
-          Explore Events
+          Explore
         </button>
       </Link>
     </HandDrawnCard>

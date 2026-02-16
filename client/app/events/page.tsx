@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import SpaceLoader from "../components/SpaceLoader";
 import EventCard from "../components/EventCard";
+import CategoryDropdown, { type Category } from "../components/Events/CategoryDropdown";
 
 type PublicEvent = {
   _id: string;
@@ -23,9 +24,6 @@ type PublicEvent = {
   minMembersPerTeam: number;
   prizePool: string;
 };
-
-const CATEGORIES = ["All", "Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"] as const;
-type Category = typeof CATEGORIES[number];
 
 const Events = () => {
   const [events, setEvents] = useState<PublicEvent[] | null>(null);
@@ -99,51 +97,15 @@ const Events = () => {
             Browse events and filter by category or search by name.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-evenly gap-4 mb-6">
-            {/* <div className="flex gap-2 flex-wrap">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`hand-drawn-button px-3 py-2 text-sm ${category === cat ? "border-yellow" : ""}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div> */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 mb-6">
+            <CategoryDropdown value={category} onChange={setCategory} />
 
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="
-                w-full sm:w-64
-                px-3 py-2
-                rounded-md
-                bg-black/60
-                border border-white/20
-                text-white
-                text-sm
-                focus:outline-none
-                focus:ring-2 focus:ring-yellow-400
-              "
-            >
-              {CATEGORIES.map((cat) => (
-                <option
-                  key={cat}
-                  value={cat}
-                  className="text-black"
-                >
-                  {cat === "All" ? "All Categories" : cat}
-                </option>
-              ))}
-            </select>
-
-            <div className="w-full sm:w-1/3">
+            <div className="w-full sm:min-w-72 sm:flex-1">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search events by name..."
-                className="w-full rounded-md px-3 py-2 bg-black/60 border border-white/10 text-white"
+                className="hand-drawn-input"
               />
             </div>
           </div>
