@@ -99,7 +99,7 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
             {/* ===== DESKTOP: Dial Carousel (hidden on small screens) ===== */}
             <div
                 ref={containerRef}
-                className="fixed left-[-160px] top-[75%] -translate-y-1/2 w-[320px] z-50 hidden sm:flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-500 ease-out"
+                className="fixed left-[-160px] top-[75%] -translate-y-1/2 w-[320px] z-50 hidden lg:flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-500 ease-out"
                 style={{
                     height: '320px',
                     transform: isHovered
@@ -110,7 +110,7 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
                 onMouseLeave={() => setIsHovered(false)}
             >
                 <motion.div
-                    className="w-[280px] h-[280px] rounded-full bg-black/60 backdrop-blur-md relative border-4 border-white"
+                    className="w-70 h-70 rounded-full bg-black/60 backdrop-blur-md relative border-4 border-white"
                     style={{
                         filter: 'url(#wobbly-border)',
                         transformOrigin: "center center"
@@ -131,7 +131,7 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
                                 key={String(event._id)}
                                 className={`
                                     absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                                    w-14 h-14 rounded-full flex items-center justify-center
+                                    w-20 h-20 rounded-full flex items-center justify-center
                                     border-2 transition-all duration-300
                                     ${featuredColor(event.category, isActive)}
                                 `}
