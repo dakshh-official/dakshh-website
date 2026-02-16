@@ -6,7 +6,7 @@ interface OtpEmailTemplateProps {
 
 export function OtpEmailTemplate({ otp }: OtpEmailTemplateProps) {
   const siteUrl = (
-    process.env.SITE_URL ?? "https://dakshh-staging.vercel.app/"
+    process.env.SITE_URL ?? "https://www.dakshh-hitk.com/"
   ).replace(/\/+$/, "");
   const dakshhLogo = `${siteUrl}/Dakshh_Logo.png`;
   const iicLogo = `${siteUrl}/IIC.png`;
