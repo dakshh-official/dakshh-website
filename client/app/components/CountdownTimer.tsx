@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 
 interface CountdownTimerProps {
   targetDate: Date;
@@ -31,38 +30,58 @@ function calculateTimeLeft(targetDate: Date): TimeLeft {
   };
 }
 
-function TimeUnit({ value, label }: { value: number; label: string }) {
+function TimeUnit({
+  value,
+  label,
+  showColonAfter,
+}: {
+  value: number;
+  label: string;
+  showColonAfter?: boolean;
+}) {
   return (
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="flex flex-col items-center"
+      className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6"
     >
-      <div className="relative">
-        <div className="bg-black/80 border-2 border-red rounded-lg px-3 py-2 sm:px-4 sm:py-3 md:px-5 md:py-4 min-w-17.5 sm:min-w-20 md:min-w-22.5 lg:min-w-25">
-          <motion.span
-            key={value}
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white block text-center"
-            style={{
-              textShadow:
-                "0 0 10px rgba(255, 70, 85, 0.8), 0 0 20px rgba(255, 70, 85, 0.5)",
-              fontFamily: "var(--font-space-grotesk), sans-serif",
-            }}
-          >
-            {value.toString().padStart(2, "0")}
-          </motion.span>
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          <div className="bg-black/80 border-2 border-red rounded-lg px-3 py-2 sm:px-4 sm:py-3 md:px-5 md:py-4 min-w-17.5 sm:min-w-20 md:min-w-22.5 lg:min-w-25">
+            <motion.span
+              key={value}
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white block text-center hand-drawn-title"
+              style={{
+                textShadow:
+                  "0 0 10px rgba(255, 70, 85, 0.8), 0 0 20px rgba(255, 70, 85, 0.5)",
+                fontWeight: 900,
+              }}
+            >
+              {value.toString().padStart(2, "0")}
+            </motion.span>
+          </div>
+          {/* Decorative corner pieces */}
+          <div className="absolute -top-1 -left-1 w-2 h-2 bg-cyan" />
+          <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan" />
+          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-cyan" />
+          <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-cyan" />
         </div>
-        {/* Decorative corner pieces */}
-        <div className="absolute -top-1 -left-1 w-2 h-2 bg-cyan" />
-        <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan" />
-        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-cyan" />
-        <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-cyan" />
+        <span className="text-xs sm:text-sm md:text-base text-cyan mt-2 uppercase tracking-wider font-semibold">
+          {label}
+        </span>
       </div>
-      <span className="text-xs sm:text-sm md:text-base text-cyan mt-2 uppercase tracking-wider font-semibold">
-        {label}
-      </span>
+      {showColonAfter && (
+        <span
+          className="text-red text-2xl sm:text-3xl md:text-4xl font-bold self-start pt-5 sm:pt-6 md:pt-7"
+          style={{
+            textShadow: "0 0 10px rgba(255, 70, 85, 0.6)",
+          }}
+        >
+          :
+        </span>
+      )}
     </motion.div>
   );
 }
@@ -92,7 +111,7 @@ function FloatingCrewmate({
         zIndex: 10,
       }}
     >
-      <div className="relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24">
+      {/* <div className="relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24">
         <Image
           src={side === "left" ? "/peeking.png" : "/peeking2.png"}
           alt="Crewmate"
@@ -102,7 +121,7 @@ function FloatingCrewmate({
             transform: side === "right" ? "scaleX(-1)" : undefined,
           }}
         />
-      </div>
+      </div> */}
     </motion.div>
   );
 }
@@ -140,7 +159,7 @@ export default function CountdownTimer({
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative"
+        className="relative hand-drawn-text"
       >
         <div className="bg-black/80 border-3 border-red rounded-2xl px-8 py-6 md:px-12 md:py-8">
           <h3
@@ -203,20 +222,11 @@ export default function CountdownTimer({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-center items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6"
+          className="flex justify-center items-start gap-2 sm:gap-3 md:gap-4 lg:gap-6"
         >
-          <TimeUnit value={timeLeft.days} label="Days" />
-          <span className="text-red text-2xl sm:text-3xl md:text-4xl font-bold mt-5 sm:mt-6.25">
-            :
-          </span>
-          <TimeUnit value={timeLeft.hours} label="Hours" />
-          <span className="text-red text-2xl sm:text-3xl md:text-4xl font-bold mt-5 sm:mt-6.25">
-            :
-          </span>
-          <TimeUnit value={timeLeft.minutes} label="Mins" />
-          <span className="text-red text-2xl sm:text-3xl md:text-4xl font-bold mt-5 sm:mt-6.25">
-            :
-          </span>
+          <TimeUnit value={timeLeft.days} label="Days" showColonAfter />
+          <TimeUnit value={timeLeft.hours} label="Hours" showColonAfter />
+          <TimeUnit value={timeLeft.minutes} label="Mins" showColonAfter />
           <TimeUnit value={timeLeft.seconds} label="Secs" />
         </motion.div>
       </div>
