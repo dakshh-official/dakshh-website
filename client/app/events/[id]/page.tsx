@@ -59,10 +59,9 @@ const EventPage = () => {
         const eventData = await eventRes.json();
         setEvent(eventData);
 
-        // Fetch all events for carousel
-        const allRes = await fetch('/api/events/public');
-        if (allRes.ok) {
-          const allData = await allRes.json();
+        const similarEvents = await fetch(`/api/events/similar?category=${eventData.category}`);
+        if (similarEvents.ok) {
+          const allData = await similarEvents.json();
           setAllEvents(allData);
         }
       } catch (e: any) {
