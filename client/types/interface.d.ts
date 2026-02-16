@@ -122,3 +122,25 @@ export interface IRegistration {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface RegiEventProps {
+  _id: string;
+  eventName: string;
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  banner?: string | null;
+  date: string;
+  time: string;
+  venue: string;
+}
+
+export interface Registration {
+  _id: string;
+  eventId: RegiEventProps
+  isTeam: boolean,
+  owner: string;
+  team: string[];
+  verified: boolean
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}

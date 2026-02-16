@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import "@/lib/models/Events";
+import "@/lib/models/Registrations";
+import "@/lib/models/User";
 
 function getMongoUri(): string {
   const uri = process.env.MONGODB_URI;

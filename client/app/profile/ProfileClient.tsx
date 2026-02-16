@@ -8,6 +8,7 @@ import HandDrawnCard from "../components/HandDrawnCard";
 import AvatarModal from "./AvatarModal";
 import AmongUsGame from "./AmongUsGame";
 import { DotOrbit } from "@paper-design/shaders-react";
+import EventsTab from "../components/Profile/EventsTab";
 
 interface ProfileData {
   username: string;
@@ -173,7 +174,7 @@ export default function ProfileClient({
                   <button
                     type="button"
                     onClick={() => setQrModalOpen(true)}
-                    className="absolute inset-0 sm:pointer-events-none"
+                    className="absolute inset-0 sm:pointer-events-none cursor-pointer"
                     aria-label="Show profile QR"
                   />
                 </div>
@@ -181,7 +182,7 @@ export default function ProfileClient({
                   type="button"
                   onClick={() => setAvatarModalOpen(true)}
                   disabled={loading}
-                  className="absolute bottom-0 left-0 -translate-x-1/4 translate-y-1/4 sm:top-0 sm:right-0 sm:bottom-auto sm:left-auto sm:translate-x-1/4 sm:-translate-y-1/4 z-20 w-10 h-10 rounded-full bg-white text-black border-2 border-black shadow-[0_0_0_2px_rgba(0,0,0,0.35)] hover:bg-cyan transition-colors disabled:opacity-60 flex items-center justify-center"
+                  className="absolute bottom-0 left-0 -translate-x-1/4 translate-y-1/4 sm:top-0 sm:right-0 sm:bottom-auto sm:left-auto sm:translate-x-1/4 sm:-translate-y-1/4 z-20 w-10 h-10 rounded-full bg-white text-black border-2 border-black shadow-[0_0_0_2px_rgba(0,0,0,0.35)] hover:bg-cyan transition-colors disabled:opacity-60 flex items-center justify-center cursor-pointer"
                   title="Edit avatar"
                 >
                   <svg
@@ -226,13 +227,11 @@ export default function ProfileClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${
-                  tab.id === "arcade" ? "hidden md:inline-flex" : ""
-                } ${
-                  activeTab === tab.id
+                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${tab.id === "arcade" ? "hidden md:inline-flex" : ""
+                  } ${activeTab === tab.id
                     ? "bg-cyan text-black scale-105"
                     : "bg-transparent text-white border-white/50 hover:border-cyan hover:text-cyan"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -428,49 +427,7 @@ export default function ProfileClient({
             )}
 
             {activeTab === "events" && (
-              <HandDrawnCard className="p-6 sm:p-8">
-                <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-4">
-                  My Events
-                </h2>
-                <p className="text-cyan text-sm mb-4">
-                  List of events you have registered to
-                </p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b-2 border-white/30">
-                        <th className="py-2 pr-4 text-cyan font-semibold">
-                          Event / Team Name
-                        </th>
-                        <th className="py-2 pr-4 text-cyan font-semibold">
-                          Crewmates
-                        </th>
-                        <th className="py-2 text-cyan font-semibold">
-                          Date / Time
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td colSpan={3} className="py-12 text-center">
-                          <div className="flex flex-col items-center gap-2">
-                            <Image
-                              src="/1.png"
-                              alt=""
-                              width={48}
-                              height={48}
-                              className="opacity-50"
-                            />
-                            <span className="text-white/60 text-sm">
-                              No events yet
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </HandDrawnCard>
+              <EventsTab />
             )}
 
             {activeTab === "arcade" && (
