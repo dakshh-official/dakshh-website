@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+// import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -11,7 +12,11 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "DAKSHH Tech Fest 2026",
-  description: "A premier tech festival by Heritage Institute of Technology, Kolkata",
+  description: "Annual Techno-Management Fest of HITK",
+  icons: {
+    icon: "/Dakshh_Logo.png",
+    apple: "/Dakshh_Logo.png",
+  },
 };
 
 export const viewport = {

@@ -17,7 +17,7 @@ export function EmailTemplate({ email }: EmailTemplateProps) {
     (Array.from(email).reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 10 ||
       0) + 1;
   const siteUrl = (
-    process.env.SITE_URL ?? "https://dakshh-staging.vercel.app/"
+    process.env.SITE_URL ?? "https://www.dakshh-hitk.com/"
   ).replace(/\/+$/, "");
   const primaryCrewmate = `${siteUrl}/${avatarIndex}.png`;
   const dakshhLogo = `${siteUrl}/Dakshh_Logo.png`;

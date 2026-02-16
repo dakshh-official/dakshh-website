@@ -186,7 +186,7 @@ export default function Hero() {
                     className="hand-drawn-button w-full sm:w-auto text-sm sm:text-base px-6 py-3 md:px-8 md:py-4 text-center no-underline"
                     style={{ background: "rgba(0, 0, 255, 0.9)" }}
                   >
-                    Join the Lobby
+                    Join the Room
                   </Link>
                 )}
               </div>

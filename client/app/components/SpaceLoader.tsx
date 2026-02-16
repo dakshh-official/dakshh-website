@@ -349,7 +349,7 @@ export default function SpaceLoader() {
         <div className="relative w-full h-full flex items-center justify-center">
           {/* WELCOME */}
           <div
-            className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"
+            className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute text-center"
             style={{
               opacity: welcomeOpacity,
               fontFamily: "var(--font-space-grotesk), sans-serif",

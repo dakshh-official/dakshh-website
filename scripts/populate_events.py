@@ -6,10 +6,44 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Configuration ---
-MONGODB_URI = os.getenv("MONGODB_URI") # e.g., mongodb://localhost:27017
-DB_NAME = os.getenv("DB_NAME") # Change to your actual DB name
-COLLECTION_NAME = os.getenv("COLLECTION_NAME") # Mongoose usually pluralizes 'Event' to 'events'
+MONGODB_URI = os.getenv("MONGODB_URI")
+DB_NAME = os.getenv("DB_NAME")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 FILE_PATH = "test.xlsx"
+
+VALID_CATEGORIES = ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"]
+
+
+def safe_int(value, default=0):
+    if pd.isna(value):
+        return default
+    try:
+        return int(value)
+    except:
+        return default
+
+
+def safe_float(value, default=0):
+    if pd.isna(value):
+        return default
+    try:
+        return float(value)
+    except:
+        return default
+
+
+def clean_rules(text):
+    rules = []
+    for line in str(text).split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        # Remove numbering like "1. "
+        if line[0].isdigit() and "." in line:
+            line = line.split(".", 1)[1].strip()
+        rules.append(line)
+    return rules
+
 
 def parse_and_upload_events(file_path):
     print("Connecting to MongoDB...")
@@ -23,40 +57,44 @@ def parse_and_upload_events(file_path):
     events_to_upsert = []
     current_event = None
 
-    for index, row in df.iterrows():
+    for _, row in df.iterrows():
 
         # Detect new event
-        if pd.notna(row["Event Name"]):
+        if pd.notna(row.get("Event Name")):
+
             if current_event:
                 events_to_upsert.append(current_event)
 
-            # Safe numeric parsing
-            min_members = int(row.get("Minimum members per team", 1) or 1)
-            max_members = int(row.get("Maximum members per team", min_members) or min_members)
-            fees = float(row.get("Fees", 0) or 0)
+            category = str(row.get("Category", "")).strip()
 
-            # Rules
+            if category not in VALID_CATEGORIES:
+                print(f"⚠ Invalid category '{category}' — Skipping")
+                continue
+
+            min_members = safe_int(row.get("Minimum members per team"), 1)
+            max_members = safe_int(row.get("Maximum members per team"), min_members)
+            fees = safe_float(row.get("Fees"), 0)
+
             rules_list = []
             if pd.notna(row.get("Rules")):
-                rules_list = [
-                    r.strip() for r in str(row["Rules"]).split("\n") if r.strip()
-                ]
+                rules_list = clean_rules(row["Rules"])
 
-            # Clubs
             clubs_list = []
             if pd.notna(row.get("Club")):
                 clubs_list = [
-                    c.strip() for c in str(row["Club"]).split(",") if c.strip()
+                    c.strip()
+                    for c in str(row["Club"]).split(",")
+                    if c.strip()
                 ]
 
             current_event = {
                 "eventName": str(row["Event Name"]).strip(),
-                "category": str(row["Category"]).strip(),
-                "date": str(row["Date (DD/MM/YY)"]).strip(),
-                "time": str(row["Time (hh:mm)"]).strip(),
-                "duration": str(row["Duration"]).strip(),
-                "venue": str(row["Venue"]).strip(),
-                "description": str(row["Description"]).strip(),
+                "category": category,
+                "date": str(row.get("Date (DD/MM/YY)", "")).strip(),
+                "time": str(row.get("Time (hh:mm)", "")).strip(),
+                "duration": str(row.get("Duration", "")).strip(),
+                "venue": str(row.get("Venue", "")).strip(),
+                "description": str(row.get("Description", "")).strip(),
                 "banner": "",
                 "rules": rules_list,
                 "clubs": clubs_list,
@@ -64,8 +102,10 @@ def parse_and_upload_events(file_path):
                 "minMembersPerTeam": min_members,
                 "maxMembersPerTeam": max_members,
                 "isPaidEvent": fees > 0,
+                "isFoodProvided": False,  # required by schema
+                "maxFoodServingsPerParticipant": 1,  # required by schema
                 "fees": fees,
-                "prizePool": "TBD",
+                "prizePool": "TBD",  # schema expects STRING
                 "pocs": [],
                 "registrations": []
             }
@@ -74,7 +114,7 @@ def parse_and_upload_events(file_path):
         if current_event and pd.notna(row.get("POC name")):
             current_event["pocs"].append({
                 "name": str(row["POC name"]).strip(),
-                "mobile": str(row["POC mobile"]).strip()
+                "mobile": str(row.get("POC mobile", "")).strip()
             })
 
     if current_event:
@@ -102,6 +142,7 @@ def parse_and_upload_events(file_path):
         print("No events found.")
 
     client.close()
+
 
 if __name__ == "__main__":
     if os.path.exists(FILE_PATH):
