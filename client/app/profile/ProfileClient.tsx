@@ -133,13 +133,6 @@ export default function ProfileClient({
 
   const displayAvatar = profile.avatar ?? 1;
 
-  const tabs = [
-    { id: "details", label: "Details" },
-    { id: "teams", label: "Teams" },
-    { id: "events", label: "Events" },
-    { id: "arcade", label: "Arcade" },
-  ] as const;
-
   return (
     <div className="w-full relative" data-main-content>
       <Navbar />
