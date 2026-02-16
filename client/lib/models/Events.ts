@@ -18,7 +18,7 @@ const eventSchema = new Schema(
     },
     category: {
         type: String,
-        enum: ["Software", "Hardware", "Entrepreneurship", "Quiz"],
+        enum: ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"],
         required: true,
     },
     date: {
@@ -82,6 +82,17 @@ const eventSchema = new Schema(
     isPaidEvent: {
       type: Boolean,
       required: true,
+    },
+    isFoodProvided: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    maxFoodServingsPerParticipant: {
+      type: Number,
+      required: true,
+      default: 1,
+      min: 1,
     },
     fees: {
       type: Number,

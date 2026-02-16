@@ -174,10 +174,16 @@ body {
 }
 
 .hand-drawn-text {
-  filter: url(#wobbly-text);
+  font-weight: 300;
+  /* Removed fixed font-size to allow Tailwind responsive classes to work */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+  display: block;
   font-family: var(--font-space-grotesk), sans-serif;
-  text-shadow:
-    1px 1px 0px rgba(255, 255, 255, 0.15);
+  filter: url(#wobbly-text);
+  text-align: center;
+  width: 100%;
 }
 
 .hand-drawn-button {

@@ -43,6 +43,8 @@ export interface IEvent {
   minMembersPerTeam: number;
   prizePool: number;
   isPaidEvent: boolean;
+  isFoodProvided: boolean;
+  maxFoodServingsPerParticipant: number;
   fees: number;
   registrations: Types.ObjectId[];
   createdAt: Date;
@@ -102,5 +104,63 @@ export interface EventByIdProps {
   isTeamEvent: boolean;
   membersPerTeam: number;
   prizePool: string;
+  __v: number;
+}
+
+export interface IRegistration {
+  eventId: Types.ObjectId;
+  isInTeam: boolean;
+  teamId?: Types.ObjectId;
+  participant: Types.ObjectId;
+  verified: boolean;
+  checkedIn: boolean;
+  checkedInAt?: Date;
+  checkedInBy?: Types.ObjectId;
+  foodServedCount: number;
+  lastFoodServedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ITeam {
+  eventId: Types.ObjectId;
+  teamCode: string;
+  teamLeader: Types.ObjectId;
+  team: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RegiEventProps {
+  _id: string;
+  eventName: string;
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  banner?: string | null;
+  date: string;
+  time: string;
+  venue: string;
+  maxMembersPerTeam?: number;
+  maxMembersPerTeam?: number;
+}
+
+export interface Registration {
+  _id: string;
+  eventId: RegiEventProps
+  isInTeam: boolean,
+  participant: string;
+  verified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface Team {
+  _id: string;
+  eventId: RegiEventProps
+  teamLeader: string;
+  teamCode: string;
+  team: string[];
+  createdAt: string;
+  updatedAt: string;
   __v: number;
 }
