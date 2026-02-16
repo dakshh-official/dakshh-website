@@ -47,6 +47,7 @@ function AuthForm() {
   const callbackUrl =
     rawCallbackUrl && rawCallbackUrl !== "/auth" ? rawCallbackUrl : "/";
   const authError = searchParams.get("error");
+  const message = searchParams.get("message");
   const { status } = useSession();
 
   const [mode, setMode] = useState<AuthMode>("signin");
@@ -56,7 +57,10 @@ function AuthForm() {
   const [ejectOutcome, setEjectOutcome] = useState<"success" | "error" | null>(
     null
   );
-  const [ejectedCrewmate, setEjectedCrewmate] = useState(1);
+  const [ejectedCrewmate, setEjectedCrewmate] = useState(() =>
+    message ? randomCrewmate() : 1
+  );
+  const [showMessageOverlay, setShowMessageOverlay] = useState(!!message);
 
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
@@ -77,6 +81,7 @@ function AuthForm() {
       : null);
 
   const ejecting = ejectOutcome !== null;
+  const showingOverlay = ejecting || showMessageOverlay;
 
   useEffect(() => {
     if (!ejectOutcome) return;
@@ -85,18 +90,24 @@ function AuthForm() {
         setError("Invalid email or password");
         setEjectOutcome(null);
       } else {
-        window.location.assign("/");
+        window.location.assign(callbackUrl);
         return;
       }
     }, 4200);
     return () => clearTimeout(t);
-  }, [ejectOutcome]);
+  }, [ejectOutcome, callbackUrl]);
 
   useEffect(() => {
     if (status === "authenticated" && !ejecting) {
-      window.location.replace("/");
+      window.location.replace(callbackUrl);
     }
-  }, [status, ejecting]);
+  }, [status, ejecting, callbackUrl]);
+
+  useEffect(() => {
+    if (!showMessageOverlay || !message) return;
+    const t = setTimeout(() => setShowMessageOverlay(false), 6000);
+    return () => clearTimeout(t);
+  }, [showMessageOverlay, message]);
 
   if (status !== "unauthenticated" && !ejecting) {
     return (
@@ -277,12 +288,12 @@ function AuthForm() {
     <div className="w-full min-h-screen relative" data-main-content>
       <div
         className={`transition-opacity duration-500 ${
-          ejecting ? "opacity-0 pointer-events-none" : "opacity-100"
+          showingOverlay ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
         <Navbar />
       </div>
-      {ejecting && (
+      {(ejecting || showMessageOverlay) && (
         <div className="fixed inset-0 z-50 pointer-events-none">
           <div
             className="absolute left-0 top-1/2 -translate-y-1/2 eject-crewmate-float opacity-90"
@@ -300,20 +311,33 @@ function AuthForm() {
             <div
               className="eject-text-in text-center w-full px-4"
               style={{
-                color: ejectOutcome === "success" ? "#00ff66" : "#FF4655",
+                color: ejecting
+                  ? ejectOutcome === "success"
+                    ? "#00ff66"
+                    : "#FF4655"
+                  : "#00d4ff",
                 fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                textShadow:
-                  ejectOutcome === "success"
+                textShadow: ejecting
+                  ? ejectOutcome === "success"
                     ? "0 0 20px rgba(0, 255, 102, 0.85), 0 2px 4px rgba(0,0,0,0.5)"
-                    : "0 0 20px rgba(255, 70, 85, 0.8), 0 2px 4px rgba(0,0,0,0.5)",
+                    : "0 0 20px rgba(255, 70, 85, 0.8), 0 2px 4px rgba(0,0,0,0.5)"
+                  : "0 0 20px rgba(0, 212, 255, 0.85), 0 2px 4px rgba(0,0,0,0.5)",
                 opacity: 0,
               }}
             >
-              {ejectOutcome === "success"
-                ? "YOU ARE NOT AN IMPOSTER!"
-                : "YOU ARE AN IMPOSTER!"}
+              {ejecting
+                ? ejectOutcome === "success"
+                  ? "YOU ARE NOT AN IMPOSTER!"
+                  : "YOU ARE AN IMPOSTER!"
+                : (() => {
+                    try {
+                      return decodeURIComponent(message ?? "").toUpperCase();
+                    } catch {
+                      return (message ?? "").toUpperCase();
+                    }
+                  })()}
             </div>
           </div>
         </div>
@@ -334,7 +358,7 @@ function AuthForm() {
       </div>
       <div
         className={`relative z-10 min-h-screen flex items-center justify-center pt-20 pb-12 px-4 transition-opacity duration-500 ${
-          ejecting ? "opacity-0 pointer-events-none" : "opacity-100"
+          showingOverlay ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
         <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:block opacity-60 float">
@@ -435,7 +459,7 @@ function AuthForm() {
               </button>
             </div>
 
-            {displayError && !ejecting && (
+            {displayError && !showingOverlay && (
               <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 text-sm">
                 {displayError}
               </div>

@@ -52,9 +52,17 @@ const EventPage = () => {
 
     const fetchData = async () => {
       setLoading(true);
+      let redirecting = false;
       try {
         // Fetch specific event
         const eventRes = await fetch(`/api/events/${id}`);
+        if (eventRes.status === 401) {
+          redirecting = true;
+          const callbackUrl = encodeURIComponent(`/events/${id}`);
+          const message = encodeURIComponent('Please log in to view event details');
+          router.replace(`/auth?callbackUrl=${callbackUrl}&message=${message}`);
+          return;
+        }
         if (!eventRes.ok) throw new Error('Failed to fetch event');
         const eventData = await eventRes.json();
         setEvent(eventData);
@@ -67,7 +75,7 @@ const EventPage = () => {
       } catch (e: any) {
         toast.error(e.message);
       } finally {
-        setLoading(false);
+        if (!redirecting) setLoading(false);
       }
     };
 
