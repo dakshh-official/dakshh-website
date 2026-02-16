@@ -11,11 +11,34 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "https://www.dakshh-hitk.com"),
   title: "DAKSHH Tech Fest 2026",
   description: "Annual Techno-Management Fest of HITK",
   icons: {
     icon: "/Dakshh_Logo.png",
     apple: "/Dakshh_Logo.png",
+  },
+  openGraph: {
+    title: "DAKSHH Tech Fest 2026",
+    description: "Annual Techno-Management Fest of HITK",
+    url: "https://www.dakshh-hitk.com",
+    siteName: "DAKSHH 2026",
+    images: [
+      {
+        url: "/og.jpeg",
+        width: 1200,
+        height: 630,
+        alt: "DAKSHH Tech Fest 2026",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DAKSHH Tech Fest 2026",
+    description: "Annual Techno-Management Fest of HITK",
+    images: ["/og.png"],
   },
 };
 
