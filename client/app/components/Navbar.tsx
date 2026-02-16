@@ -114,28 +114,28 @@ export default function Navbar() {
         isScrolled ? "bg-black/90 backdrop-blur-md" : "bg-transparent"
       } ${isAnimating ? "pointer-events-none" : ""}`}
     >
-      <div className="max-w-1400 mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 md:py-4">
+      <div className="max-w-1400 mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 md:py-4">
         <div className="flex items-center justify-between">
           <div className="flex gap-10 lg:gap-15">
             <Link
               href="/"
               className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-cyan transition-colors"
             >
-              <Image src="/Dakshh_Logo.png" alt="logo" width={70} height={70} />
+              <Image src="/Dakshh_Logo.png" alt="logo" width={50} height={70} />
             </Link>
 
             <Link
               href="/"
               className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-cyan transition-colors"
             >
-              <Image src="/IIC.png" alt="logo" width={55} height={55} />
+              <Image src="/IIC.png" alt="logo" width={40} height={40} />
             </Link>
 
             <Link
               href="/"
               className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-cyan transition-colors"
             >
-              <Image src="/Heritage.png" alt="logo" width={70} height={70} />
+              <Image src="/Heritage.png" alt="logo" width={60} height={60} />
             </Link>
           </div>
 

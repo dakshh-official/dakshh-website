@@ -126,7 +126,7 @@ const EventPage = () => {
           </button>
 
           {/* Event Logo + Title */}
-          <div className="flex-1 md:pl-32 mt-10 flex justify-center md:justify-start">
+          <div className="flex-1 lg:pl-32 mt-10 flex justify-center md:justify-start">
             <div className="inline-flex items-center gap-3">
               {/* Circular Wobbly Logo */}
               {event.banner && (
@@ -141,7 +141,7 @@ const EventPage = () => {
                   />
                 </div>
               )}
-              <h1 className="hand-drawn-title text-4xl md:text-6xl text-white">
+              <h1 className="hand-drawn-title text-3xl! sm:text-5xl! lg:text-6xl! text-white">
                 {event.eventName}
               </h1>
             </div>
@@ -228,7 +228,7 @@ const EventPage = () => {
               onClick={() => router.back()}
               className="hidden md:flex hand-drawn-button w-max px-6 py-3 items-center gap-3 self-start hover:-translate-x-2 transition-transform"
             >
-              <span className="text-2xl">←</span> <span>Abort / Back</span>
+              <span className="text-2xl">←</span> <span>Back</span>
             </button>
           </div>
 
