@@ -96,7 +96,7 @@ export default function Navbar() {
   }, [status, session?.user?.avatar]);
 
   const navLinks = [
-    { name: "Home", href: "/#home" },
+    { name: "Home", href: "/" },
     // { name: "Sponsors", href: "/#sponsors" },
     { name: "Schedule", href: "/schedule" },
     { name: "Events", href: "/events" },
