@@ -5,6 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { DotOrbit } from "@paper-design/shaders-react";
+import { Eye, EyeOff } from "lucide-react";
 import Navbar from "../components/Navbar";
 import HandDrawnCard from "../components/HandDrawnCard";
 import {
@@ -55,12 +56,16 @@ function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [signUpStep, setSignUpStep] = useState<1 | 2>(1);
   const [ejectOutcome, setEjectOutcome] = useState<"success" | "error" | null>(
-    null
+    null,
   );
   const [ejectedCrewmate, setEjectedCrewmate] = useState(() =>
-    message ? randomCrewmate() : 1
+    message ? randomCrewmate() : 1,
   );
   const [showMessageOverlay, setShowMessageOverlay] = useState(!!message);
+
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
@@ -398,23 +403,23 @@ function AuthForm() {
               className="object-contain transform"
             />
           </div>
-          <HandDrawnCard className="relative z-10 px-6 py-8 sm:px-8 sm:py-10">
+          <HandDrawnCard className="relative z-10 px-4 py-6 sm:px-8 sm:py-10">
             <h1 className="hand-drawn-title text-white text-2xl sm:text-3xl mb-2">
               {mode === "signin"
                 ? "Sign In"
                 : mode === "signup"
-                ? "Create Account"
-                : "Verify OTP"}
+                  ? "Create Account"
+                  : "Verify OTP"}
             </h1>
             <p className="text-cyan text-sm mb-6">
               {mode === "signin"
                 ? "Welcome back, crewmate!"
                 : mode === "signup"
-                ? "Join the DAKSHH crew"
-                : "Complete your onboarding mission"}
+                  ? "Join the DAKSHH crew"
+                  : "Complete your onboarding mission"}
             </p>
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-col sm:flex-row gap-2 mb-6">
               <button
                 type="button"
                 onClick={() => {
@@ -423,7 +428,7 @@ function AuthForm() {
                   setSignUpStep(1);
                   setOtpCode("");
                 }}
-                className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                className={`w-full sm:flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
                   mode === "signin"
                     ? "bg-red-500/90 text-white border-2 border-white"
                     : "bg-transparent text-white/70 border-2 border-white/40 hover:border-white/60"
@@ -444,7 +449,7 @@ function AuthForm() {
                   setSignUpStep(1);
                   setOtpCode("");
                 }}
-                className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                className={`w-full sm:flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
                   mode === "signup"
                     ? "bg-red-500/90 text-white border-2 border-white"
                     : "bg-transparent text-white/70 border-2 border-white/40 hover:border-white/60"
@@ -485,15 +490,31 @@ function AuthForm() {
                   <label className="block text-cyan text-sm font-semibold mb-1">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    value={signInPassword}
-                    onChange={(e) => setSignInPassword(e.target.value)}
-                    className="hand-drawn-input"
-                    placeholder="••••••••"
-                    required
-                    autoComplete="current-password"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showSignInPassword ? "text" : "password"}
+                      value={signInPassword}
+                      onChange={(e) => setSignInPassword(e.target.value)}
+                      className="hand-drawn-input pr-10"
+                      placeholder="••••••••"
+                      required
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-white/70 hover:text-cyan"
+                      onClick={() => setShowSignInPassword((prev) => !prev)}
+                      aria-label={
+                        showSignInPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showSignInPassword ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="submit"
@@ -590,49 +611,87 @@ function AuthForm() {
                       <label className="block text-cyan text-sm font-semibold mb-1">
                         Password
                       </label>
-                      <input
-                        type="password"
-                        value={signUpData.password}
-                        onChange={(e) =>
-                          setSignUpData((p) => ({
-                            ...p,
-                            password: e.target.value,
-                          }))
-                        }
-                        className="hand-drawn-input"
-                        placeholder="Min 8 characters"
-                        required
-                        minLength={8}
-                        autoComplete="new-password"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showSignUpPassword ? "text" : "password"}
+                          value={signUpData.password}
+                          onChange={(e) =>
+                            setSignUpData((p) => ({
+                              ...p,
+                              password: e.target.value,
+                            }))
+                          }
+                          className="hand-drawn-input pr-10"
+                          placeholder="Min 8 characters"
+                          required
+                          minLength={8}
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center px-3 text-white/70 hover:text-cyan"
+                          onClick={() => setShowSignUpPassword((prev) => !prev)}
+                          aria-label={
+                            showSignUpPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                        >
+                          {showSignUpPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-cyan text-sm font-semibold mb-1">
                         Confirm Password
                       </label>
-                      <input
-                        type="password"
-                        value={signUpData.confirmPassword}
-                        onChange={(e) =>
-                          setSignUpData((p) => ({
-                            ...p,
-                            confirmPassword: e.target.value,
-                          }))
-                        }
-                        className="hand-drawn-input"
-                        placeholder="••••••••"
-                        required
-                        autoComplete="new-password"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={signUpData.confirmPassword}
+                          onChange={(e) =>
+                            setSignUpData((p) => ({
+                              ...p,
+                              confirmPassword: e.target.value,
+                            }))
+                          }
+                          className="hand-drawn-input pr-10"
+                          placeholder="••••••••"
+                          required
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center px-3 text-white/70 hover:text-cyan"
+                          onClick={() =>
+                            setShowConfirmPassword((prev) => !prev)
+                          }
+                          aria-label={
+                            showConfirmPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <button
                         type="button"
                         onClick={() => {
                           setError(null);
                           setSignUpStep(1);
                         }}
-                        className="hand-drawn-button flex-1 py-3 flex items-center justify-center"
+                        className="hand-drawn-button w-full sm:flex-1 py-3 flex items-center justify-center"
                         style={{ background: "rgba(0, 0, 0, 0.7)" }}
                       >
                         Back
@@ -640,7 +699,7 @@ function AuthForm() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="hand-drawn-button flex-1 py-3 flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="hand-drawn-button w-full sm:flex-1 py-3 flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {loading ? "Creating..." : "Create Account"}
                       </button>

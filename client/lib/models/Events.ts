@@ -18,7 +18,7 @@ const eventSchema = new Schema(
     },
     category: {
         type: String,
-        enum: ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"],
+        enum: ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming", "Design and Prototyping"],
         required: true,
     },
     date: {

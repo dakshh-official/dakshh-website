@@ -22,7 +22,7 @@ export default function Footer() {
             <ul className="space-y-1.5 sm:space-y-2 text-white/70 text-xs sm:text-sm">
               <li>
                 <Link
-                  href="/#home"
+                  href="/"
                   className="hover:text-cyan transition-colors"
                 >
                   Home
@@ -46,10 +46,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/#sponsors"
+                  href="/seminars"
                   className="hover:text-cyan transition-colors"
                 >
-                  Sponsors
+                  Seminars
                 </Link>
               </li>
             </ul>

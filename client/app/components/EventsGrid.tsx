@@ -8,7 +8,7 @@ import Image from 'next/image';
 interface Event {
   title: string;
   description: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming" | "Design and Prototyping";
   prizePool?: string;
   teams?: string;
   featured?: boolean;

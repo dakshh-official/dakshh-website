@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import Image from "next/image";
 import Navbar from "../components/Navbar";
 import HandDrawnCard from "../components/HandDrawnCard";
@@ -156,7 +157,7 @@ export default function ProfileClient({
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 pt-35 pb-10">
         <div className="max-w-2xl w-full mx-auto space-y-6 text-center">
           {/* Top Section: Avatar and Username */}
-          <HandDrawnCard className="p-6 sm:p-8 relative">
+          <HandDrawnCard className="p-4 sm:p-8 relative">
             <div className="absolute top-4 right-4 text-cyan text-xs font-mono">
               {profile.isProfileComplete
                 ? "PROFILE COMPLETE"
@@ -211,11 +212,11 @@ export default function ProfileClient({
                   </svg>
                 </button>
               </div>
-              <div className="flex flex-col text-center sm:text-left">
-                <h1 className="hand-drawn-title text-white text-4xl! sm:text-4xl mb-2">
+              <div className="flex flex-col text-center sm:text-left min-w-0 w-full">
+                <h1 className="hand-drawn-title text-white text-3xl sm:text-4xl mb-2 break-words">
                   {profile.username}
                 </h1>
-                <p className="text-cyan text-sm">
+                <p className="text-cyan text-sm break-all">
                   {profile.email || "No email"}
                 </p>
               </div>
@@ -228,11 +229,13 @@ export default function ProfileClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${tab.id === "arcade" ? "hidden md:inline-flex" : ""
-                  } ${activeTab === tab.id
+                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${
+                  tab.id === "arcade" ? "hidden md:inline-flex" : ""
+                } ${
+                  activeTab === tab.id
                     ? "bg-cyan text-black scale-105"
                     : "bg-transparent text-white border-white/50 hover:border-cyan hover:text-cyan"
-                  }`}
+                }`}
               >
                 {tab.label}
               </button>
@@ -242,7 +245,7 @@ export default function ProfileClient({
           {/* Tab Content */}
           <div className="min-h-100">
             {activeTab === "details" && (
-              <HandDrawnCard className="p-6 sm:p-8">
+              <HandDrawnCard className="p-4 sm:p-8">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="hand-drawn-title text-white text-2xl">
                     Student Details
@@ -312,17 +315,17 @@ export default function ProfileClient({
                         />
                       </div>
                     </div>
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
                       <button
                         onClick={handleSaveProfile}
                         disabled={loading}
-                        className="hand-drawn-button px-6 py-2 bg-cyan text-black hover:bg-white"
+                        className="hand-drawn-button px-6 py-2 bg-cyan text-black hover:bg-white w-full sm:w-auto"
                       >
                         {loading ? "Saving..." : "Save Details"}
                       </button>
                       <button
                         onClick={() => setIsEditing(false)}
-                        className="px-4 py-2 text-white hover:text-red-400"
+                        className="px-4 py-2 text-white hover:text-red-400 w-full sm:w-auto"
                       >
                         Cancel
                       </button>
@@ -334,7 +337,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Full Name
                       </label>
-                      <p className="text-white text-lg">
+                      <p className="text-white text-lg break-words">
                         {profile.fullName || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -344,7 +347,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Phone Number
                       </label>
-                      <p className="text-white text-lg">
+                      <p className="text-white text-lg break-words">
                         {profile.phoneNumber || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -354,7 +357,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         College
                       </label>
-                      <p className="text-white text-lg">
+                      <p className="text-white text-lg break-words">
                         {profile.college || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -364,7 +367,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Stream
                       </label>
-                      <p className="text-white text-lg">
+                      <p className="text-white text-lg break-words">
                         {profile.stream || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -383,7 +386,7 @@ export default function ProfileClient({
                       )}
                     </div>
                     <div className="md:col-span-2">
-                      <div className="flex justify-center mt-6 gap-4">
+                      <div className="flex flex-col sm:flex-row justify-center mt-6 gap-4">
                         <button
                           onClick={() => {
                             setFormData({
@@ -394,14 +397,14 @@ export default function ProfileClient({
                             });
                             setIsEditing(true);
                           }}
-                          className="hand-drawn-button px-6 py-2 bg-cyan text-black hover:bg-white"
+                          className="hand-drawn-button px-6 py-2 bg-cyan text-black hover:bg-white w-full sm:w-auto"
                         >
                           Edit Details
                         </button>
 
                         <button
                           onClick={() => signOut()}
-                          className="hand-drawn-button px-6 py-2 bg-cyan text-black hover:bg-white"
+                          className="hand-drawn-button px-6 py-2 bg-cyan text-black hover:bg-white w-full sm:w-auto"
                         >
                           Sign Out
                         </button>
@@ -412,13 +415,9 @@ export default function ProfileClient({
               </HandDrawnCard>
             )}
 
-            {activeTab === "teams" && (
-              <TeamsTab />
-            )}
+            {activeTab === "teams" && <TeamsTab />}
 
-            {activeTab === "events" && (
-              <EventsTab />
-            )}
+            {activeTab === "events" && <EventsTab />}
 
             {activeTab === "arcade" && (
               <HandDrawnCard className="p-6">
@@ -438,6 +437,12 @@ export default function ProfileClient({
                 </button>
               </HandDrawnCard>
             )}
+          </div>
+
+          <div className="flex justify-center">
+            <Link href="/" className="hand-drawn-button px-6 py-2 text-sm">
+              <span className="text-2xl">←</span> <span>Abort / Back</span>
+            </Link>
           </div>
         </div>
       </div>
