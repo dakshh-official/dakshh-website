@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 
-const CATEGORIES = ["All", "Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"] as const;
+const CATEGORIES = ["All", "Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming", "Design and Prototyping"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 type Props = {

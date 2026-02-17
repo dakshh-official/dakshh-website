@@ -11,7 +11,7 @@ DB_NAME = os.getenv("DB_NAME")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 FILE_PATH = "test.xlsx"
 
-VALID_CATEGORIES = ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming"]
+VALID_CATEGORIES = ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming", "Design and Prototyping"]
 
 
 def safe_int(value, default=0):
@@ -44,6 +44,18 @@ def clean_rules(text):
         rules.append(line)
     return rules
 
+def resolve_banner(link):
+    if pd.isna(link):
+        return ""
+
+    link = str(link).strip()
+
+    # Ensure it's a valid Cloudinary URL
+    if link.startswith("https://res.cloudinary.com/"):
+        return link
+
+    print(f"⚠ Invalid Cloudinary URL: {link}")
+    return ""
 
 def parse_and_upload_events(file_path):
     print("Connecting to MongoDB...")
@@ -95,7 +107,7 @@ def parse_and_upload_events(file_path):
                 "duration": str(row.get("Duration", "")).strip(),
                 "venue": str(row.get("Venue", "")).strip(),
                 "description": str(row.get("Description", "")).strip(),
-                "banner": "",
+                "banner": resolve_banner(row.get("Banner")),
                 "rules": rules_list,
                 "clubs": clubs_list,
                 "isTeamEvent": max_members > 1,

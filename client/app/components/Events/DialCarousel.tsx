@@ -225,6 +225,7 @@ const featuredColor = (cat: string, active: boolean) => {
         case 'Hardware': return "bg-orange-900/90 text-orange-100 border-orange-400";
         case 'Entrepreneurship': return "bg-green-900/90 text-green-100 border-green-400";
         case 'Gaming': return "bg-purple-900/90 text-purple-100 border-purple-400";
+        case 'Design and Prototyping': return "bg-cyan-900/90 text-cyan-100 border-cyan-400";
         default: return "bg-gray-900/90 text-gray-100 border-gray-400";
     }
 }
@@ -236,6 +237,7 @@ const mobileColor = (cat: string) => {
         case 'Hardware': return "bg-orange-900/80 text-orange-100 border-orange-400/60";
         case 'Entrepreneurship': return "bg-green-900/80 text-green-100 border-green-400/60";
         case 'Gaming': return "bg-purple-900/80 text-purple-100 border-purple-400/60";
+        case 'Design and Prototyping': return "bg-cyan-900/80 text-cyan-100 border-cyan-400/60";
         default: return "bg-gray-900/80 text-gray-100 border-gray-400/60";
     }
 }

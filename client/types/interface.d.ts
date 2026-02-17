@@ -28,7 +28,7 @@ export interface IPoc {
 
 export interface IEvent {
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming", "Design and Prototyping";
   date: string;
   time: string;
   duration: string;
@@ -54,7 +54,7 @@ export interface IEvent {
 export interface EventProps {
   _id: Types.ObjectId;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming" | "Design and Prototyping";
   description: string;
   banner?: string | null;
   clubs: string[];
@@ -68,6 +68,7 @@ const CATEGORIES = [
   "Entrepreneurship",
   "Quiz",
   "Gaming",
+  "Design and Prototyping",
 ] as const;
 
 type Category = typeof CATEGORIES[number];
@@ -92,7 +93,7 @@ export interface PublicEventProps {
 export interface EventByIdProps {
   _id: Types.ObjectId;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming" | "Design and Prototyping";
   description: string;
   banner?: string | null;
   rules: string[];
@@ -134,7 +135,7 @@ export interface ITeam {
 export interface RegiEventProps {
   _id: string;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Quiz" | "Gaming" | "Design and Prototyping";
   banner?: string | null;
   date: string;
   time: string;
