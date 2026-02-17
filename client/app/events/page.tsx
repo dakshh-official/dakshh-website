@@ -12,7 +12,7 @@ import CategoryDropdown, { type Category } from "../components/Events/CategoryDr
 type PublicEvent = {
   _id: string;
   eventName: string;
-  category: "Software" | "Hardware" | "Entrepreneurship" | "Gaming" | "Quiz";
+  category: "Software" | "Hardware" | "Entrepreneurship" | "Gaming" | "Quiz" | "Design and Prototyping";
   description: string;
   banner: string;
   clubs: string[];
@@ -25,26 +25,26 @@ type PublicEvent = {
   prizePool: string;
 };
 
-const formatEventTime = (time: string) => {
-  if (!time) return '';
-  const [hours, minutes] = time.split(':');
+// const formatEventTime = (time: string) => {
+//   if (!time) return '';
+//   const [hours, minutes] = time.split(':');
 
-  let hoursInt = parseInt(hours);
-  let minutesInt = parseInt(minutes);
+//   let hoursInt = parseInt(hours);
+//   let minutesInt = parseInt(minutes);
 
-  if (!minutesInt || minutesInt === 0) {
-    if (hoursInt <= 12) {
-      return `${hoursInt} AM`;
-    } else {
-      return `${hoursInt - 12} PM`;
-    }
-  }
-  if (hoursInt <= 12) {
-    return `${hoursInt}:${minutesInt} AM`;
-  } else {
-    return `${hoursInt - 12}:${minutesInt} PM`;
-  }
-};
+//   if (!minutesInt || minutesInt === 0) {
+//     if (hoursInt <= 12) {
+//       return `${hoursInt} AM`;
+//     } else {
+//       return `${hoursInt - 12} PM`;
+//     }
+//   }
+//   if (hoursInt <= 12) {
+//     return `${hoursInt}:${minutesInt} AM`;
+//   } else {
+//     return `${hoursInt - 12}:${minutesInt} PM`;
+//   }
+// };
 
 const Events = () => {
   const [events, setEvents] = useState<PublicEvent[] | null>(null);
@@ -160,7 +160,7 @@ const Events = () => {
                     banner={ev.banner}
                     clubs={ev.clubs}
                     date={ev.date}
-                    time={formatEventTime(ev.time)}
+                    time={ev.time}
                     venue={ev.venue}
                     isTeamEvent={ev.isTeamEvent}
                     minMembersPerTeam={ev.minMembersPerTeam}

@@ -14,26 +14,26 @@ import RulesModal from '@/app/components/Events/modals/RulesModal';
 import PocModal from '@/app/components/Events/modals/PocModal';
 import { MessageSquare, ScrollText } from 'lucide-react';
 
-const formatEventTime = (time: string) => {
-  if (!time) return '';
-  const [hours, minutes] = time.split(':');
+// const formatEventTime = (time: string) => {
+//   if (!time) return '';
+//   const [hours, minutes] = time.split(':');
 
-  let hoursInt = parseInt(hours);
-  let minutesInt = parseInt(minutes);
+//   let hoursInt = parseInt(hours);
+//   let minutesInt = parseInt(minutes);
 
-  if (!minutesInt || minutesInt === 0) {
-    if (hoursInt <= 12) {
-      return `${hoursInt} AM`;
-    } else {
-      return `${hoursInt - 12} PM`;
-    }
-  }
-  if (hoursInt <= 12) {
-    return `${hoursInt}:${minutesInt} AM`;
-  } else {
-    return `${hoursInt - 12}:${minutesInt} PM`;
-  }
-};
+//   if (!minutesInt || minutesInt === 0) {
+//     if (hoursInt <= 12) {
+//       return `${hoursInt} AM`;
+//     } else {
+//       return `${hoursInt - 12} PM`;
+//     }
+//   }
+//   if (hoursInt <= 12) {
+//     return `${hoursInt}:${minutesInt} AM`;
+//   } else {
+//     return `${hoursInt - 12}:${minutesInt} PM`;
+//   }
+// };
 
 const EventPage = () => {
   const params = useParams();
@@ -161,7 +161,7 @@ const EventPage = () => {
               style={{ filter: 'url(#wobbly-border)' }}>
               <p className="text-sm uppercase tracking-widest text-gray-400">Date</p>
               <p className="text-2xl font-bold">{event.date}</p>
-              <p className="text-sm text-yellow-400">{formatEventTime(event.time)}</p>
+              <p className="text-sm text-yellow-400">{event.time}</p>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ const EventPage = () => {
 
             <div className="block md:hidden mb-4">
               <div className="border-2 border-white rounded-xl px-4 py-2 bg-black/50 text-center">
-                <p className="font-bold">{event.date} • {formatEventTime(event.time)}</p>
+                <p className="font-bold">{event.date} • {(event.time)}</p>
               </div>
             </div>
 
@@ -250,7 +250,7 @@ const EventPage = () => {
             >
               <HandDrawnCard className="p-6 transition-transform group-hover:-translate-y-1 bg-blue-900/20 group-hover:bg-blue-900/40 border-blue-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold uppercase">Rules & <br />Regulations</span>
+                  <span className="text-xl font-bold uppercase">Rules & Regulations</span>
                   <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
                     <ScrollText />
                   </div>
@@ -266,7 +266,7 @@ const EventPage = () => {
               >
                 <HandDrawnCard className="p-6 transition-transform group-hover:-translate-y-1 bg-green-900/20 group-hover:bg-green-900/40 border-green-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold uppercase">Contact <br />POCs</span>
+                    <span className="text-xl font-bold uppercase">Contact POCs</span>
                     <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
                       <MessageSquare />
                     </div>

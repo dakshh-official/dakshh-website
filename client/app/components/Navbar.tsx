@@ -195,7 +195,19 @@ export default function Navbar() {
                   Sign Out
                 </button> */}
               </div>
-            ) : null}
+            ) : (
+              <Link
+                href="/auth"
+                className="hand-drawn-button text-xs xl:text-sm"
+                style={{
+                  background: "rgba(255, 70, 85, 0.9)",
+                  padding: "0.4rem 0.8rem",
+                  fontSize: "0.85rem",
+                }}
+              >
+                Join
+              </Link>
+            )}
           </div>
 
           <button
