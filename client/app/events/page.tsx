@@ -25,6 +25,27 @@ type PublicEvent = {
   prizePool: string;
 };
 
+const formatEventTime = (time: string) => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+
+  let hoursInt = parseInt(hours);
+  let minutesInt = parseInt(minutes);
+
+  if (!minutesInt || minutesInt === 0) {
+    if (hoursInt <= 12) {
+      return `${hoursInt} AM`;
+    } else {
+      return `${hoursInt - 12} PM`;
+    }
+  }
+  if (hoursInt <= 12) {
+    return `${hoursInt}:${minutesInt} AM`;
+  } else {
+    return `${hoursInt - 12}:${minutesInt} PM`;
+  }
+};
+
 const Events = () => {
   const [events, setEvents] = useState<PublicEvent[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -139,7 +160,7 @@ const Events = () => {
                     banner={ev.banner}
                     clubs={ev.clubs}
                     date={ev.date}
-                    time={ev.time}
+                    time={formatEventTime(ev.time)}
                     venue={ev.venue}
                     isTeamEvent={ev.isTeamEvent}
                     minMembersPerTeam={ev.minMembersPerTeam}
