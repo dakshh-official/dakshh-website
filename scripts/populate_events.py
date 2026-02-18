@@ -85,6 +85,7 @@ def parse_and_upload_events(file_path):
 
             min_members = safe_int(row.get("Minimum members per team"), 1)
             max_members = safe_int(row.get("Maximum members per team"), min_members)
+            # prize_pool = str(row.get("Prize Pool", "")).strip()
             fees = safe_float(row.get("Fees"), 0)
 
             rules_list = []
@@ -117,7 +118,8 @@ def parse_and_upload_events(file_path):
                 "isFoodProvided": False,  # required by schema
                 "maxFoodServingsPerParticipant": 1,  # required by schema
                 "fees": fees,
-                "prizePool": "TBD",  # schema expects STRING
+                "prizePool": "TBA",
+                # "prizePool": prize_pool if prize_pool else "TBD",
                 "pocs": [],
                 "registrations": []
             }
