@@ -38,6 +38,8 @@ export interface IEvent {
   rules: string[];
   clubs: string[];
   isTeamEvent: boolean;
+  isActive: boolean;
+  doc?: string;
   pocs: IPoc[];
   maxMembersPerTeam: number;
   minMembersPerTeam: number;

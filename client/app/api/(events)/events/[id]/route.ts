@@ -59,7 +59,7 @@ export async function GET(
 
     const event = await Event.findById(id)
       .select(
-        "_id eventName category date time duration venue description banner rules clubs isTeamEvent pocs minMembersPerTeam maxMembersPerTeam isPaidEvent fees prizePool"
+        "_id eventName category date time duration venue description banner rules clubs isTeamEvent pocs minMembersPerTeam maxMembersPerTeam isPaidEvent fees prizePool isActive doc"
       )
       .lean();
 

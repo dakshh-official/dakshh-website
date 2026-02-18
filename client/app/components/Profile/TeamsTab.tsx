@@ -65,7 +65,7 @@ const TeamsTab = () => {
 									<button
 										type="button"
 										onClick={() => setOpenTeamId(isOpen ? null : team._id)}
-										className="flex-1 text-left"
+										className="flex-1 text-left cursor-pointer"
 									>
 										<div className="flex items-center gap-2 flex-wrap">
 											<h3 className="text-base sm:text-lg font-semibold text-white">
