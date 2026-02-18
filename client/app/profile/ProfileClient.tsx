@@ -213,7 +213,7 @@ export default function ProfileClient({
                 </button>
               </div>
               <div className="flex flex-col text-center sm:text-left min-w-0 w-full">
-                <h1 className="hand-drawn-title text-white text-3xl sm:text-4xl mb-2 break-words">
+                <h1 className="hand-drawn-title text-white text-3xl! sm:text-6xl! mb-2 wrap-break-word">
                   {profile.username}
                 </h1>
                 <p className="text-cyan text-sm break-all">
@@ -247,7 +247,7 @@ export default function ProfileClient({
             {activeTab === "details" && (
               <HandDrawnCard className="p-4 sm:p-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="hand-drawn-title text-white text-2xl">
+                  <h2 className="hand-drawn-title text-white text-2xl! md:text-3xl!">
                     Student Details
                   </h2>
                 </div>

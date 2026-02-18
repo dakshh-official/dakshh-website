@@ -34,6 +34,9 @@ export async function POST(
             );
         }
 
+        if(!event.isActive) {
+            return NextResponse.json({ error: "This event is not accepting registrations right now" }, { status: 400 });
+        }
         if (!event.isTeamEvent) {
             return NextResponse.json({ error: "This event is a Solo Event" }, { status: 400 });
         }

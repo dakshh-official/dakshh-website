@@ -42,6 +42,8 @@ type EventDetails = {
   clubs?: string[];
   pocs?: { name: string; mobile: string }[];
   isTeamEvent: boolean;
+  isActive: boolean;
+  doc?: string;
   minMembersPerTeam: number;
   maxMembersPerTeam: number;
   isPaidEvent: boolean;
@@ -353,71 +355,93 @@ const EventPage = () => {
               </div>
 
               <div className="mt-8 sticky bottom-0 pt-4 bg-linear-to-t from-black/90 to-transparent space-y-3">
-                {event.isTeamEvent ? (
-                  event.userRegistration?.isRegistered && event.myTeam ? (
-                    <div className="rounded-lg border border-blue-500/40 bg-blue-900/20 p-4 space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-blue-200 font-semibold">You are in a team</p>
-                        <p className="text-xs text-blue-100">
-                          {event.myTeam.teamSize}/{event.maxMembersPerTeam} members
-                        </p>
-                      </div>
-                      <p className="text-xs text-blue-100/80">Team Code</p>
-                      <p className="font-mono text-white break-all">{event.myTeam.teamCode}</p>
-                      <div className="space-y-1">
-                        {event.myTeam.members?.map((member) => {
-                          const displayName = member.fullName || member.username || "Unknown";
-                          return (
-                            <div key={member._id} className="flex items-center justify-between text-sm text-blue-50">
-                              <span>{displayName}</span>
-                              {member.isLeader && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-200">
-                                  Leader
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex gap-2">
-                        <input
-                          value={teamCodeInput}
-                          onChange={(e) => setTeamCodeInput(e.target.value)}
-                          placeholder="Enter Team Code (e.g. DAKSHH-ABCD12)"
-                          className="flex-1 rounded-lg border border-white/25 bg-black/70 px-3 py-2 text-sm outline-none focus:border-cyan"
-                          disabled={loading || registering}
-                        />
-                        <button
-                          className="hand-drawn-button px-4 py-2 bg-blue-600 hover:bg-blue-700 text-sm"
-                          disabled={loading || registering}
-                          onClick={joinTeam}
-                        >
-                          JOIN TEAM
-                        </button>
-                      </div>
-                      <button
-                        className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full"
-                        disabled={loading || registering}
-                        onClick={createTeam}
-                      >
-                        CREATE MY TEAM
-                      </button>
-                    </div>
-                  )
-                ) : (
+                {!event.isActive ? (
                   <div className="flex justify-center">
                     <button
-                      className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto"
-                      disabled={loading || registering || Boolean(event.userRegistration?.isRegistered)}
-                      onClick={registerSoloEvent}
+                      className="hand-drawn-button text-xl px-12 py-4 cursor-not-allowed w-full sm:w-auto opacity-80"
+                      disabled
                     >
-                      {event.userRegistration?.isRegistered ? "REGISTERED" : "REGISTER"}
+                      COMING SOON
                     </button>
                   </div>
-                )}
+                ) :
+                  event.isTeamEvent ? (
+                    event.userRegistration?.isRegistered && event.myTeam ? (
+                      <div className="rounded-lg border border-blue-500/40 bg-blue-900/20 p-4 space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-blue-200 font-semibold">You are in a team</p>
+                          <p className="text-xs text-blue-100">
+                            {event.myTeam.teamSize}/{event.maxMembersPerTeam} members
+                          </p>
+                        </div>
+                        <p className="text-xs text-blue-100/80">Team Code</p>
+                        <p className="font-mono text-white break-all">{event.myTeam.teamCode}</p>
+                        <div className="space-y-1">
+                          {event.myTeam.members?.map((member) => {
+                            const displayName = member.fullName || member.username || "Unknown";
+                            return (
+                              <div key={member._id} className="flex items-center justify-between text-sm text-blue-50">
+                                <span>{displayName}</span>
+                                {member.isLeader && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-200">
+                                    Leader
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
+                          <input
+                            value={teamCodeInput}
+                            onChange={(e) => setTeamCodeInput(e.target.value)}
+                            placeholder="Enter Team Code (e.g. DAKSHH-ABCD12)"
+                            className="flex-1 rounded-lg border border-white/25 bg-black/70 px-3 py-2 text-sm outline-none focus:border-cyan"
+                            disabled={loading || registering}
+                          />
+                          <button
+                            className="hand-drawn-button px-4 py-2 bg-blue-600 hover:bg-blue-700 text-sm"
+                            disabled={loading || registering}
+                            onClick={joinTeam}
+                          >
+                            {registering ? (
+                              <div className="w-6 h-6 mx-10 border-4 border-red-100 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              "JOIN TEAM"
+                            )}
+                          </button>
+                        </div>
+                        <button
+                          className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full"
+                          disabled={loading || registering}
+                          onClick={createTeam}
+                        >
+                          {registering ? (
+                            <div className="w-6 h-6 mx-10 border-4 border-red-100 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            "CREATE MY TEAM"
+                          )}
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex justify-center">
+                      <button
+                        className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                        disabled={loading || registering || Boolean(event.userRegistration?.isRegistered)}
+                        onClick={registerSoloEvent}
+                      >
+                        {registering ? (
+                          <div className="w-6 h-6 mx-10 border-4 border-red-100 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          event.userRegistration?.isRegistered ? "REGISTERED" : "REGISTER"
+                        )}
+                      </button>
+                    </div>
+                  )}
               </div>
             </HandDrawnCard>
 

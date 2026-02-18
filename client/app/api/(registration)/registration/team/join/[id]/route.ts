@@ -35,6 +35,9 @@ export async function POST(
         if (!event) {
             return NextResponse.json({ error: "Event no longer exists" }, { status: 400 });
         }
+        if (!event.isActive) {
+            return NextResponse.json({ error: "This event is not accepting registrations right now" }, { status: 400 });
+        }
         if (String(event._id) !== id) {
             return NextResponse.json({ error: "Team code is for a different event" }, { status: 400 });
         }
