@@ -1,5 +1,7 @@
 export const ADMIN_BASE_PATH =
-  process.env.ADMIN_BASE_PATH ?? "x7k9p2";
+  process.env.NEXT_PUBLIC_ADMIN_BASE_PATH ??
+  process.env.ADMIN_BASE_PATH ??
+  "x7k9p2";
 
 export function getAdminBasePath(): string {
   return ADMIN_BASE_PATH.startsWith("/")

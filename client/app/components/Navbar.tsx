@@ -159,19 +159,6 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            {session && (
-              <Link
-                href="/dashboard"
-                className="hand-drawn-button text-xs xl:text-sm"
-                style={{
-                  background: "rgba(0, 106, 255, 0.85)",
-                  padding: "0.4rem 0.8rem",
-                  fontSize: "0.85rem",
-                }}
-              >
-                Dashboard
-              </Link>
-            )}
             {status === "loading" ? null : session ? (
               <div className="flex items-center gap-2">
                 <Link

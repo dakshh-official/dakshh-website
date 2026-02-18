@@ -7,7 +7,7 @@ const adminPath = ADMIN_BASE_PATH.startsWith("/")
   ? ADMIN_BASE_PATH
   : `/${ADMIN_BASE_PATH}`;
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith(adminPath)) {
