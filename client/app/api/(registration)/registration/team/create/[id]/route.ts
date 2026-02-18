@@ -63,6 +63,7 @@ export async function POST(
             eventId: event._id,
             teamCode: newCode,
             teamLeader: session.user.id,
+            team: [session.user.id],
         });
 
         let newRegistration;

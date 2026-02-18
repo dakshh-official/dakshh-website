@@ -158,9 +158,29 @@ export interface Registration {
 export interface Team {
   _id: string;
   eventId: RegiEventProps
-  teamLeader: string;
+  teamLeader:
+  | string
+  | {
+    _id: string;
+    username?: string;
+    fullName?: string;
+  };
   teamCode: string;
-  team: string[];
+  team: (
+    | string
+    | {
+      _id: string;
+      username?: string;
+      fullName?: string;
+    }
+  )[];
+  members?: {
+    _id: string;
+    username?: string;
+    fullName?: string;
+    isLeader: boolean;
+  }[];
+  teamSize?: number;
   createdAt: string;
   updatedAt: string;
   __v: number;

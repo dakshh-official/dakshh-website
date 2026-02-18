@@ -14,104 +14,200 @@ import RulesModal from '@/app/components/Events/modals/RulesModal';
 import PocModal from '@/app/components/Events/modals/PocModal';
 import { MessageSquare, ScrollText } from 'lucide-react';
 
+type TeamMember = {
+  _id: string;
+  username?: string;
+  fullName?: string;
+  isLeader?: boolean;
+};
+
+type TeamDetails = {
+  _id: string;
+  teamCode: string;
+  teamSize: number;
+  members: TeamMember[];
+};
+
+type EventDetails = {
+  _id: string;
+  eventName: string;
+  category: string;
+  date: string;
+  time: string;
+  duration?: string;
+  venue: string;
+  description: string;
+  banner?: string;
+  rules?: string[];
+  clubs?: string[];
+  pocs?: { name: string; mobile: string }[];
+  isTeamEvent: boolean;
+  minMembersPerTeam: number;
+  maxMembersPerTeam: number;
+  isPaidEvent: boolean;
+  fees: number;
+  prizePool: string;
+  userRegistration?: {
+    isRegistered: boolean;
+    isInTeam: boolean;
+    verified: boolean;
+  };
+  myTeam?: TeamDetails | null;
+};
+
 const EventPage = () => {
   const params = useParams();
   const id = params?.id as string;
   const router = useRouter();
 
-  const [event, setEvent] = useState<any>(null);
+  const [event, setEvent] = useState<EventDetails | null>(null);
   const [allEvents, setAllEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState<boolean>(false);
+  const [teamCodeInput, setTeamCodeInput] = useState("");
 
   const [showRules, setShowRules] = useState(false);
   const [showPoc, setShowPoc] = useState(false);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!id) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      let redirecting = false;
-      try {
-        // Fetch specific event
-        const eventRes = await fetch(`/api/events/${id}`);
-        if (eventRes.status === 401) {
-          redirecting = true;
-          const callbackUrl = encodeURIComponent(`/events/${id}`);
-          const message = encodeURIComponent('Please log in to view event details');
-          router.replace(`/auth?callbackUrl=${callbackUrl}&message=${message}`);
-          return;
-        }
-        if (!eventRes.ok) throw new Error('Failed to fetch event');
-        const eventData = await eventRes.json();
-        setEvent(eventData);
-
-        const similarEvents = await fetch(`/api/events/similar?category=${eventData.category}`);
-        if (similarEvents.ok) {
-          const allData = await similarEvents.json();
-          setAllEvents(allData);
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error((error as Error)?.message || "Failed to fetch events");
-      } finally {
-        if (!redirecting) setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
-  const registerForEvent = async () => {
-    if (!id || !event) return;
-
-    setRegistering(true);
-    const apiUrl = event.isTeamEvent ? "/api/registration/team/create" : "/api/registration/solo";
+    setLoading(true);
     let redirecting = false;
-    let callbackUrl, message;
-
     try {
-      const registration = await fetch(`${apiUrl}/${id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      const data = await registration.json().catch(() => ({}));
-
-      if (registration.status === 401 && data.isVerified === false) {
+      const eventRes = await fetch(`/api/events/${id}`);
+      if (eventRes.status === 401) {
         redirecting = true;
-        callbackUrl = encodeURIComponent(`/events/${id}`);
-        message = encodeURIComponent('Please log in to view event details');
-        toast.error(data.error);
+        const callbackUrl = encodeURIComponent(`/events/${id}`);
+        const message = encodeURIComponent('Please log in to view event details');
         router.replace(`/auth?callbackUrl=${callbackUrl}&message=${message}`);
         return;
       }
+      if (!eventRes.ok) throw new Error('Failed to fetch event');
+      const eventData = await eventRes.json();
+      setEvent(eventData);
 
-      if (!data.isProfileComplete) {
-        redirecting = true;
-        callbackUrl = encodeURIComponent(`/events/${id}`);
-        message = encodeURIComponent('Please complete your details');
-        toast.error(data.error);
-        router.replace(`/profile?callbackUrl=${callbackUrl}&message=${message}`);
-        return;
+      const similarEvents = await fetch(`/api/events/similar?category=${eventData.category}`);
+      if (similarEvents.ok) {
+        const allData = await similarEvents.json();
+        setAllEvents(allData);
       }
+    } catch (error) {
+      console.error(error);
+      toast.error((error as Error)?.message || "Failed to fetch events");
+    } finally {
+      if (!redirecting) setLoading(false);
+    }
+  };
 
-      if (!registration.ok) {
-        toast.error(data.error || "Failed to register in event");
-      }
+  useEffect(() => {
+    fetchData();
+  }, [id]);
 
-      if (data.message) {
-        toast.success(data.message);
-      }
+  const handleRegistrationResponse = async (registration: Response) => {
+    const data = await registration.json().catch(() => ({}));
+    let redirecting = false;
+
+    if (registration.status === 401) {
+      redirecting = true;
+      const callbackUrl = encodeURIComponent(`/events/${id}`);
+      const message = encodeURIComponent('Please log in to view event details');
+      toast.error(data.error || "Please log in to continue");
+      router.replace(`/auth?callbackUrl=${callbackUrl}&message=${message}`);
+      return { redirecting, data };
+    }
+
+    if (data.isProfileComplete === false) {
+      redirecting = true;
+      const callbackUrl = encodeURIComponent(`/events/${id}`);
+      const message = encodeURIComponent('Please complete your details');
+      toast.error(data.error);
+      router.replace(`/profile?callbackUrl=${callbackUrl}&message=${message}`);
+      return { redirecting, data };
+    }
+
+    if (!registration.ok) {
+      toast.error(data.error || "Failed to register in event");
+      return { redirecting, data };
+    }
+
+    if (data.message) {
+      toast.success(data.message);
+    }
+    await fetchData();
+    return { redirecting, data };
+  };
+
+  const registerSoloEvent = async () => {
+    if (!id || !event) return;
+
+    setRegistering(true);
+    let redirecting = false;
+
+    try {
+      const registration = await fetch(`/api/registration/solo/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const response = await handleRegistrationResponse(registration);
+      redirecting = response.redirecting;
     } catch (error) {
       console.error(error);
       toast.error((error as Error)?.message || "Failed to Register in the event");
     } finally {
       if (!redirecting) setRegistering(false);
     }
-  }
+  };
+
+  const createTeam = async () => {
+    if (!id || !event) return;
+
+    setRegistering(true);
+    let redirecting = false;
+
+    try {
+      const registration = await fetch(`/api/registration/team/create/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const response = await handleRegistrationResponse(registration);
+      redirecting = response.redirecting;
+    } catch (error) {
+      console.error(error);
+      toast.error((error as Error)?.message || "Failed to create team");
+    } finally {
+      if (!redirecting) setRegistering(false);
+    }
+  };
+
+  const joinTeam = async () => {
+    if (!id || !event) return;
+    if (!teamCodeInput.trim()) {
+      toast.error("Enter a valid team code");
+      return;
+    }
+
+    setRegistering(true);
+    let redirecting = false;
+
+    try {
+      const registration = await fetch(`/api/registration/team/join/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamCode: teamCodeInput.trim().toUpperCase() }),
+      });
+      const response = await handleRegistrationResponse(registration);
+      redirecting = response.redirecting;
+      if (registration.ok) {
+        setTeamCodeInput("");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error((error as Error)?.message || "Failed to join team");
+    } finally {
+      if (!redirecting) setRegistering(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -170,7 +266,7 @@ const EventPage = () => {
               {/* Circular Wobbly Logo */}
               {event.banner && (
                 <div
-                  className="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-3 border-white/60 flex-shrink-0 bg-black/40"
+                  className="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-3 border-white/60 shrink-0 bg-black/40"
                   style={{ filter: 'url(#wobbly-border)' }}
                 >
                   <img
@@ -256,14 +352,72 @@ const EventPage = () => {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-center sticky bottom-0 pt-4 bg-linear-to-t from-black/90 to-transparent">
-                <button
-                  className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto"
-                  disabled={loading || registering}
-                  onClick={registerForEvent}
-                >
-                  REGISTER
-                </button>
+              <div className="mt-8 sticky bottom-0 pt-4 bg-linear-to-t from-black/90 to-transparent space-y-3">
+                {event.isTeamEvent ? (
+                  event.userRegistration?.isRegistered && event.myTeam ? (
+                    <div className="rounded-lg border border-blue-500/40 bg-blue-900/20 p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-blue-200 font-semibold">You are in a team</p>
+                        <p className="text-xs text-blue-100">
+                          {event.myTeam.teamSize}/{event.maxMembersPerTeam} members
+                        </p>
+                      </div>
+                      <p className="text-xs text-blue-100/80">Team Code</p>
+                      <p className="font-mono text-white break-all">{event.myTeam.teamCode}</p>
+                      <div className="space-y-1">
+                        {event.myTeam.members?.map((member) => {
+                          const displayName = member.fullName || member.username || "Unknown";
+                          return (
+                            <div key={member._id} className="flex items-center justify-between text-sm text-blue-50">
+                              <span>{displayName}</span>
+                              {member.isLeader && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-200">
+                                  Leader
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <input
+                          value={teamCodeInput}
+                          onChange={(e) => setTeamCodeInput(e.target.value)}
+                          placeholder="Enter Team Code (e.g. DAKSHH-ABCD12)"
+                          className="flex-1 rounded-lg border border-white/25 bg-black/70 px-3 py-2 text-sm outline-none focus:border-cyan"
+                          disabled={loading || registering}
+                        />
+                        <button
+                          className="hand-drawn-button px-4 py-2 bg-blue-600 hover:bg-blue-700 text-sm"
+                          disabled={loading || registering}
+                          onClick={joinTeam}
+                        >
+                          JOIN TEAM
+                        </button>
+                      </div>
+                      <button
+                        className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full"
+                        disabled={loading || registering}
+                        onClick={createTeam}
+                      >
+                        CREATE MY TEAM
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  <div className="flex justify-center">
+                    <button
+                      className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                      disabled={loading || registering || Boolean(event.userRegistration?.isRegistered)}
+                      onClick={registerSoloEvent}
+                    >
+                      {event.userRegistration?.isRegistered ? "REGISTERED" : "REGISTER"}
+                    </button>
+                  </div>
+                )}
               </div>
             </HandDrawnCard>
 
