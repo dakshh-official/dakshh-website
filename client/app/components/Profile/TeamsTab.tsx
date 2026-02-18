@@ -36,8 +36,6 @@ const TeamsTab = () => {
 		setTimeout(() => setCopiedId(null), 2000);
 	};
 
-	console.log(teams);
-
 	return (
 		<HandDrawnCard className="w-full space-y-6">
 			<div className="text-center space-y-2">
@@ -107,6 +105,45 @@ const TeamsTab = () => {
 														</>
 													)}
 												</button>
+											</div>
+										</div>
+									)}
+
+									<div className="grid grid-cols-2 gap-2 text-sm">
+										<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-2">
+											<p className="text-[11px] text-gray-400">Team Size</p>
+											<p className="text-white font-semibold">
+												{reg.teamSize ?? reg.members?.length ?? reg.team.length}
+											</p>
+										</div>
+										<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-2">
+											<p className="text-[11px] text-gray-400">Team Limit</p>
+											<p className="text-white font-semibold">
+												{reg.eventId.maxMembersPerTeam ?? "-"}
+											</p>
+										</div>
+									</div>
+
+									{reg.members && reg.members.length > 0 && (
+										<div className="rounded-lg border border-gray-700 bg-gray-900/30 p-3">
+											<p className="text-xs text-gray-400 mb-2">Teammates</p>
+											<div className="space-y-1">
+												{reg.members.map((member) => {
+													const displayName = member.fullName || member.username || "Unknown";
+													return (
+														<div
+															key={member._id}
+															className="flex items-center justify-between text-sm text-gray-200"
+														>
+															<span>{displayName}</span>
+															{member.isLeader && (
+																<span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">
+																	Leader
+																</span>
+															)}
+														</div>
+													);
+												})}
 											</div>
 										</div>
 									)}

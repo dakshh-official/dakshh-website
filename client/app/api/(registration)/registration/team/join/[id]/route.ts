@@ -6,7 +6,10 @@ import User, { IUserDocument } from "@/lib/models/User";
 import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> },
+) {
     try {
         const session = await auth();
         if (!session?.user?.id) {
@@ -14,6 +17,7 @@ export async function POST(request: Request) {
         }
 
         const { teamCode } = await request.json().catch(() => ({}));
+        const { id } = await params;
 
         if (!teamCode) {
             return NextResponse.json({ error: "Team code is required" }, { status: 400 });
@@ -30,6 +34,9 @@ export async function POST(request: Request) {
         const event = await Event.findById(targetTeam.eventId) as IEventDocument;
         if (!event) {
             return NextResponse.json({ error: "Event no longer exists" }, { status: 400 });
+        }
+        if (String(event._id) !== id) {
+            return NextResponse.json({ error: "Team code is for a different event" }, { status: 400 });
         }
         if (!event.isTeamEvent) {
             return NextResponse.json({ error: "This event is a Solo Event" }, { status: 400 });
