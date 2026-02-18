@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { resolveDashboardPath } from "@/lib/roles";
+import { usePathname } from "next/navigation";
 
 const ANIMATIONS_SEEN_KEY = "dakshh_animations_seen";
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileAvatar, setProfileAvatar] = useState<number | null>(null);
@@ -23,8 +24,13 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Check if animations are happening (SpaceLoader or LandingEjection)
+  // Only block navbar during animation when on landing page - never on /events, /schedule, etc.
   useEffect(() => {
+    if (pathname !== "/") {
+      setIsAnimating(false);
+      return;
+    }
+
     const checkAnimationState = () => {
       // SpaceLoader is running if body has 'loader-ready' class but not 'loader-complete'
       const hasLoaderReady = document.body.classList.contains("loader-ready");
@@ -65,7 +71,7 @@ export default function Navbar() {
       window.removeEventListener("dakshh:loaderComplete", handleLoaderComplete);
       clearInterval(interval);
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -106,7 +112,6 @@ export default function Navbar() {
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
   const resolvedAvatar = profileAvatar ?? session?.user?.avatar ?? 1;
-  const dashboardPath = resolveDashboardPath(session?.user?.roles);
 
   return (
     <nav
@@ -154,9 +159,9 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            {dashboardPath && (
+            {session && (
               <Link
-                href={dashboardPath}
+                href="/dashboard"
                 className="hand-drawn-button text-xs xl:text-sm"
                 style={{
                   background: "rgba(0, 106, 255, 0.85)",
@@ -239,9 +244,9 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              {dashboardPath && (
+              {session && (
                 <Link
-                  href={dashboardPath}
+                  href="/dashboard"
                   className="text-cyan py-2 px-3 text-sm font-semibold hover:text-yellow transition-colors"
                   onClick={closeMobileMenu}
                 >

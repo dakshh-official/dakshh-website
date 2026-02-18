@@ -3,6 +3,7 @@ import "@/lib/models/Events";
 import "@/lib/models/Registrations";
 import "@/lib/models/User";
 import "@/lib/models/Team";
+import "@/lib/models/AdminUser";
 
 function getMongoUri(): string {
   const uri = process.env.MONGODB_URI;

@@ -5,6 +5,7 @@ interface OtpSessionRecord {
 }
 
 const OTP_SESSION_PREFIX = "otp:";
+const ADMIN_OTP_SESSION_PREFIX = "admin_otp:";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -24,6 +25,10 @@ function normalizeEmail(email: string) {
 
 function keyFor(email: string, deviceId: string) {
   return `${OTP_SESSION_PREFIX}${normalizeEmail(email)}:${deviceId}`;
+}
+
+function adminKeyFor(email: string, deviceId: string) {
+  return `${ADMIN_OTP_SESSION_PREFIX}${normalizeEmail(email)}:${deviceId}`;
 }
 
 function pruneExpired(store: Map<string, OtpSessionRecord>) {
@@ -74,4 +79,36 @@ export function getOtpSession(email: string, deviceId: string) {
 export function clearOtpSession(email: string, deviceId: string) {
   const store = getStore();
   store.delete(keyFor(email, deviceId));
+}
+
+export function setAdminOtpSession(params: {
+  email: string;
+  deviceId: string;
+  otpHash: string;
+  expiresAt: Date;
+}) {
+  const store = getStore();
+  pruneExpired(store);
+  store.set(adminKeyFor(params.email, params.deviceId), {
+    email: normalizeEmail(params.email),
+    otpHash: params.otpHash,
+    expiresAtMs: params.expiresAt.getTime(),
+  });
+}
+
+export function getAdminOtpSession(email: string, deviceId: string) {
+  const store = getStore();
+  const key = adminKeyFor(email, deviceId);
+  const session = store.get(key);
+  if (!session) return null;
+  if (session.expiresAtMs <= Date.now()) {
+    store.delete(key);
+    return null;
+  }
+  return session;
+}
+
+export function clearAdminOtpSession(email: string, deviceId: string) {
+  const store = getStore();
+  store.delete(adminKeyFor(email, deviceId));
 }

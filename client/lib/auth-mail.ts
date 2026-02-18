@@ -22,3 +22,12 @@ export async function sendOtpEmail(to: string, otp: string) {
     react: OtpEmailTemplate({ otp }),
   });
 }
+
+export async function sendAdminOtpEmail(to: string, otp: string) {
+  return resend.emails.send({
+    from: onboardingFrom,
+    to: [to],
+    subject: "Admin panel verification code",
+    react: OtpEmailTemplate({ otp }),
+  });
+}
