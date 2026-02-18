@@ -3,6 +3,7 @@ import generateCode from "@/lib/generateTeamID";
 import Event, { IEventDocument } from "@/lib/models/Events";
 import Registration from "@/lib/models/Registrations";
 import Team from "@/lib/models/Team";
+import User from "@/lib/models/User";
 import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 
@@ -40,6 +41,22 @@ export async function POST(
             return NextResponse.json({ error: "The Event is a paid event" }, { status: 400 });
         }
 
+        const user = await User.findById(session.user.id);
+
+        if (!user.verified) {
+            return NextResponse.json({
+                error: "Verify your account to Register",
+                isVerified: false
+            }, { status: 401 });
+        }
+
+        if (!user.isProfileComplete) {
+            return NextResponse.json({
+                error: "Complete your profile to Register",
+                isProfileComplete: false
+            }, { status: 400 });
+        }
+
         const newCode = `DAKSHH-${generateCode()}`;
 
         const newTeam = new Team({
@@ -49,7 +66,7 @@ export async function POST(
         });
 
         let newRegistration;
-        if(newTeam) {
+        if (newTeam) {
             newRegistration = new Registration({
                 eventId: event._id,
                 isInTeam: true,
@@ -66,7 +83,9 @@ export async function POST(
 
         return NextResponse.json({
             message: `Registered in ${event.eventName} Successfully!`,
-            eventId: newRegistration.teamId
+            eventId: newRegistration.teamId,
+            isVerified: true,
+            isProfileComplete: true
         }, { status: 201 });
     } catch (error) {
         console.error("Creating Team Error:", error);
