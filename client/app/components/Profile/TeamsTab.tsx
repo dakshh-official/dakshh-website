@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import HandDrawnCard from '../HandDrawnCard'
 import { Team } from '@/types/interface';
-import Image from 'next/image';
+import Link from 'next/link';
 
 const TeamsTab = () => {
 	const [teams, setTeams] = useState<Team[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [copiedId, setCopiedId] = useState<string | null>(null);
+	const [openTeamId, setOpenTeamId] = useState<string | null>(null);
 
 	useEffect(() => {
 		const fetchEvents = async () => {
@@ -36,6 +37,8 @@ const TeamsTab = () => {
 		setTimeout(() => setCopiedId(null), 2000);
 	};
 
+	const getTeamSize = (team: Team) => team.teamSize ?? team.members?.length ?? team.team.length;
+
 	return (
 		<HandDrawnCard className="w-full space-y-6">
 			<div className="text-center space-y-2">
@@ -49,131 +52,103 @@ const TeamsTab = () => {
 					<p className="text-gray-400 hand-drawn-text">Loading your journey...</p>
 				</div>
 			) : teams.length > 0 ? (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 w-full">
-					{teams.map((reg: Team) => (
-						<HandDrawnCard key={reg._id}>
-							<div className="space-y-4">
-								{reg.eventId.banner && (
-									<div className="relative w-full h-48 rounded-lg overflow-hidden">
-										<Image
-											src={reg.eventId.banner}
-											alt={reg.eventId.eventName}
-											fill
-											className="object-cover"
-										/>
-									</div>
-								)}
-
-								<div className="space-y-2">
-									<h3 className="text-xl font-bold text-white">
-										{reg.eventId.eventName}
-									</h3>
-
-									<div className="flex items-center gap-2 flex-wrap">
-										<span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm">
-											{reg.eventId.category}
-										</span>
-										{reg.teamCode && (
-											<span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
-												Team Event
-											</span>
-										)}
-									</div>
-
-									{reg.teamCode && (
-										<div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-											<div className="flex items-center justify-between gap-2">
-												<div className="flex-1">
-													<p className="text-xs text-gray-400 mb-1">Team Code</p>
-													<p className="text-sm font-mono text-white font-semibold">
-														{reg.teamCode}
-													</p>
-												</div>
-												<button
-													onClick={() => copyTeamCode(reg.teamCode!, reg._id)}
-													className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm transition-colors flex items-center gap-2"
-												>
-													{copiedId === reg._id ? (
-														<>
-															<span>✓</span>
-															<span>Copied</span>
-														</>
-													) : (
-														<>
-															<span>📋</span>
-															<span>Copy</span>
-														</>
-													)}
-												</button>
-											</div>
-										</div>
-									)}
-
-									<div className="grid grid-cols-2 gap-2 text-sm">
-										<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-2">
-											<p className="text-[11px] text-gray-400">Team Size</p>
-											<p className="text-white font-semibold">
-												{reg.teamSize ?? reg.members?.length ?? reg.team.length}
-											</p>
-										</div>
-										<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-2">
-											<p className="text-[11px] text-gray-400">Team Limit</p>
-											<p className="text-white font-semibold">
-												{reg.eventId.maxMembersPerTeam ?? "-"}
-											</p>
-										</div>
-									</div>
-
-									{reg.members && reg.members.length > 0 && (
-										<div className="rounded-lg border border-gray-700 bg-gray-900/30 p-3">
-											<p className="text-xs text-gray-400 mb-2">Teammates</p>
-											<div className="space-y-1">
-												{reg.members.map((member) => {
-													const displayName = member.fullName || member.username || "Unknown";
-													return (
-														<div
-															key={member._id}
-															className="flex items-center justify-between text-sm text-gray-200"
-														>
-															<span>{displayName}</span>
-															{member.isLeader && (
-																<span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">
-																	Leader
-																</span>
-															)}
-														</div>
-													);
-												})}
-											</div>
-										</div>
-									)}
-
-									<div className="space-y-1 text-sm text-gray-300">
-										<div className="flex items-center text-left gap-2">
-											<span className="text-gray-400">📅</span>
-											<span>{reg.eventId.date}</span>
-										</div>
-										<div className="flex items-center text-left gap-2">
-											<span className="text-gray-400">🕐</span>
-											<span>{reg.eventId.time}</span>
-										</div>
-										<div className="flex items-center text-left gap-2">
-											<span className="text-gray-400">📍</span>
-											<span>{reg.eventId.venue}</span>
-										</div>
-									</div>
-
-									<div className="pt-2 border-t border-gray-700">
-										<div className="flex items-center justify-between text-sm">
-											<span className="text-gray-400">
-												Created: {new Date(reg.createdAt).toLocaleDateString()}
+				<div className="space-y-3 w-full">
+					{teams.map((team: Team) => {
+						const isOpen = openTeamId === team._id;
+						const teamSize = getTeamSize(team);
+						return (
+							<div
+								key={team._id}
+								className="rounded-xl border border-gray-700 bg-black/40 overflow-hidden"
+							>
+								<div className="px-4 py-3 flex items-center justify-between gap-3">
+									<button
+										type="button"
+										onClick={() => setOpenTeamId(isOpen ? null : team._id)}
+										className="flex-1 text-left"
+									>
+										<div className="flex items-center gap-2 flex-wrap">
+											<h3 className="text-base sm:text-lg font-semibold text-white">
+												{team.eventId.eventName}
+											</h3>
+											<span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-full text-xs">
+												{team.eventId.category}
 											</span>
 										</div>
+										<p className="text-xs text-gray-400 mt-1">
+											{teamSize}/{team.eventId.maxMembersPerTeam ?? "-"} members
+										</p>
+									</button>
+
+									<div className="flex items-center gap-2 shrink-0">
+										<button
+											type="button"
+											onClick={() => copyTeamCode(team.teamCode, team._id)}
+											className="px-2.5 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-xs transition-colors"
+										>
+											{copiedId === team._id ? "COPIED" : "COPY CODE"}
+										</button>
+										<Link
+											href={`/events/${team.eventId._id}`}
+											className="px-3 py-1.5 bg-cyan/20 hover:bg-cyan/30 text-cyan rounded-lg text-xs sm:text-sm transition-colors"
+										>
+											View Details
+										</Link>
 									</div>
 								</div>
+
+								{isOpen && (
+									<div className="border-t border-gray-700 px-4 py-3 space-y-3">
+										<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-3">
+											<p className="text-[11px] text-gray-400 mb-1">Team Code</p>
+											<p className="text-sm font-mono text-white font-semibold break-all">
+												{team.teamCode}
+											</p>
+										</div>
+
+										<div className="grid grid-cols-2 gap-2 text-sm">
+											<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-2">
+												<p className="text-[11px] text-gray-400">Team Size</p>
+												<p className="text-white font-semibold">{teamSize}</p>
+											</div>
+											<div className="rounded-lg border border-gray-700 bg-gray-900/40 p-2">
+												<p className="text-[11px] text-gray-400">Team Limit</p>
+												<p className="text-white font-semibold">
+													{team.eventId.maxMembersPerTeam ?? "-"}
+												</p>
+											</div>
+										</div>
+
+										<div className="rounded-lg border border-gray-700 bg-gray-900/30 p-3">
+											<p className="text-xs text-gray-400 mb-2">Teammates</p>
+											{team.members && team.members.length > 0 ? (
+												<div className="space-y-1">
+													{team.members.map((member) => {
+														const displayName = member.fullName || member.username || "Unknown";
+														return (
+															<div
+																key={member._id}
+																className="flex items-center justify-between text-sm text-gray-200"
+															>
+																<span>{displayName}</span>
+																{member.isLeader && (
+																	<span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">
+																		Leader
+																	</span>
+																)}
+															</div>
+														);
+													})}
+												</div>
+											) : (
+												<p className="text-sm text-gray-400">No teammates yet.</p>
+											)}
+										</div>
+									</div>
+								)}
 							</div>
-						</HandDrawnCard>
-					))}
+						);
+					})}
 				</div>
 			) : (
 				<HandDrawnCard>
