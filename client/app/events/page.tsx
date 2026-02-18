@@ -5,7 +5,6 @@ import EventCard from "../components/EventCard";
 import CategoryDropdown, {
   type Category,
 } from "../components/Events/CategoryDropdown";
-import { type Category } from "../components/Events/CategoryDropdown";
 
 type PublicEvent = {
   _id: string;
