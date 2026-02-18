@@ -68,8 +68,8 @@ export async function POST(
 
         return NextResponse.json({
             message: `Registered in ${event.eventName} Successfully!`,
-            isVerified: true, // Add this
-            isProfileComplete: true // Add this
+            isVerified: true,
+            isProfileComplete: true
         }, { status: 201 });
     } catch (error) {
         console.error("Registering in Solo Event Error:", error);

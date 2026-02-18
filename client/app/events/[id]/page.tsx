@@ -63,14 +63,16 @@ const EventPage = () => {
     fetchData();
   }, [id]);
 
-  const registerForSoloEvent = async () => {
-    if (!id) return;
+  const registerForEvent = async () => {
+    if (!id || !event) return;
+
     setRegistering(true);
+    const apiUrl = event.isTeamEvent ? "/api/registration/team/create" : "/api/registration/solo";
     let redirecting = false;
     let callbackUrl, message;
 
     try {
-      const registration = await fetch(`/api/registration/solo/${id}`, {
+      const registration = await fetch(`${apiUrl}/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -258,7 +260,7 @@ const EventPage = () => {
                 <button
                   className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                   disabled={loading || registering}
-                  onClick={registerForSoloEvent}
+                  onClick={registerForEvent}
                 >
                   REGISTER
                 </button>
