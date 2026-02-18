@@ -1,10 +1,10 @@
+"use client"
+
 import Navbar from "../components/Navbar";
 import { DotOrbit } from "@paper-design/shaders-react";
 import Crewmates from "../components/Crewmates";
 import EventCard from "../components/EventCard";
-import CategoryDropdown, {
-  type Category,
-} from "../components/Events/CategoryDropdown";
+import { useEffect, useState } from "react";
 
 type PublicEvent = {
   _id: string;
@@ -30,8 +30,7 @@ type PublicEvent = {
 
 async function getEvents(): Promise<PublicEvent[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/events/public`, {
+    const res = await fetch(`/api/events/public`, {
       cache: "no-store",
     });
 
@@ -47,8 +46,11 @@ async function getEvents(): Promise<PublicEvent[]> {
   }
 }
 
-export default async function Events() {
-  const events = await getEvents();
+export default function Events() {
+  const [events, setEvents] = useState<PublicEvent[]>([]);
+  useEffect(() => {
+    getEvents().then(setEvents);
+  }, []);
 
   // Server Component - we render a client component for the interactive parts
   return (
