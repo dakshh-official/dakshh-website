@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import Event, { IEventDocument } from "@/lib/models/Events";
 import Registration from "@/lib/models/Registrations";
+import User from "@/lib/models/User";
 import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 
@@ -38,6 +39,22 @@ export async function POST(
             return NextResponse.json({ error: "The Event is a paid event" }, { status: 400 });
         }
 
+        const user = await User.findById(session.user.id);
+
+        if (!user.verified) {
+            return NextResponse.json({
+                error: "Verify your account to Register",
+                isVerified: false
+            }, { status: 401 });
+        }
+
+        if (!user.isProfileComplete) {
+            return NextResponse.json({
+                error: "Complete your profile to Register",
+                isProfileComplete: false
+            }, { status: 400 });
+        }
+
         const newRegistration = new Registration({
             eventId: event._id,
             participant: session.user.id,
@@ -49,7 +66,11 @@ export async function POST(
             await Promise.all([newRegistration.save(), event.save()]);
         }
 
-        return NextResponse.json({ message: `Registered in ${event.eventName} Successfully!` }, { status: 201 });
+        return NextResponse.json({
+            message: `Registered in ${event.eventName} Successfully!`,
+            isVerified: true, // Add this
+            isProfileComplete: true // Add this
+        }, { status: 201 });
     } catch (error) {
         console.error("Registering in Solo Event Error:", error);
         return NextResponse.json(

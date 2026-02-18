@@ -14,27 +14,6 @@ import RulesModal from '@/app/components/Events/modals/RulesModal';
 import PocModal from '@/app/components/Events/modals/PocModal';
 import { MessageSquare, ScrollText } from 'lucide-react';
 
-// const formatEventTime = (time: string) => {
-//   if (!time) return '';
-//   const [hours, minutes] = time.split(':');
-
-//   let hoursInt = parseInt(hours);
-//   let minutesInt = parseInt(minutes);
-
-//   if (!minutesInt || minutesInt === 0) {
-//     if (hoursInt <= 12) {
-//       return `${hoursInt} AM`;
-//     } else {
-//       return `${hoursInt - 12} PM`;
-//     }
-//   }
-//   if (hoursInt <= 12) {
-//     return `${hoursInt}:${minutesInt} AM`;
-//   } else {
-//     return `${hoursInt - 12}:${minutesInt} PM`;
-//   }
-// };
-
 const EventPage = () => {
   const params = useParams();
   const id = params?.id as string;
@@ -43,6 +22,7 @@ const EventPage = () => {
   const [event, setEvent] = useState<any>(null);
   const [allEvents, setAllEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [registering, setRegistering] = useState<boolean>(false);
 
   const [showRules, setShowRules] = useState(false);
   const [showPoc, setShowPoc] = useState(false);
@@ -72,8 +52,9 @@ const EventPage = () => {
           const allData = await similarEvents.json();
           setAllEvents(allData);
         }
-      } catch (e: any) {
-        toast.error(e.message);
+      } catch (error) {
+        console.error(error);
+        toast.error((error as Error)?.message || "Failed to fetch events");
       } finally {
         if (!redirecting) setLoading(false);
       }
@@ -81,6 +62,54 @@ const EventPage = () => {
 
     fetchData();
   }, [id]);
+
+  const registerForSoloEvent = async () => {
+    if (!id) return;
+    setRegistering(true);
+    let redirecting = false;
+    let callbackUrl, message;
+
+    try {
+      const registration = await fetch(`/api/registration/solo/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      const data = await registration.json().catch(() => ({}));
+
+      if (registration.status === 401 && data.isVerified === false) {
+        redirecting = true;
+        callbackUrl = encodeURIComponent(`/events/${id}`);
+        message = encodeURIComponent('Please log in to view event details');
+        toast.error(data.error);
+        router.replace(`/auth?callbackUrl=${callbackUrl}&message=${message}`);
+        return;
+      }
+
+      if (!data.isProfileComplete) {
+        redirecting = true;
+        callbackUrl = encodeURIComponent(`/events/${id}`);
+        message = encodeURIComponent('Please complete your details');
+        toast.error(data.error);
+        router.replace(`/profile?callbackUrl=${callbackUrl}&message=${message}`);
+        return;
+      }
+
+      if (!registration.ok) {
+        toast.error(data.error || "Failed to register in event");
+      }
+
+      if (data.message) {
+        toast.success(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error((error as Error)?.message || "Failed to Register in the event");
+    } finally {
+      if (!redirecting) setRegistering(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -225,9 +254,13 @@ const EventPage = () => {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-center sticky bottom-0 pt-4 bg-gradient-to-t from-black/90 to-transparent">
-                <button className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto">
-                  COMING SOON
+              <div className="mt-8 flex justify-center sticky bottom-0 pt-4 bg-linear-to-t from-black/90 to-transparent">
+                <button
+                  className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                  disabled={loading || registering}
+                  onClick={registerForSoloEvent}
+                >
+                  REGISTER
                 </button>
               </div>
             </HandDrawnCard>

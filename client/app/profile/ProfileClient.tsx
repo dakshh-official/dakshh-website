@@ -441,7 +441,7 @@ export default function ProfileClient({
 
           <div className="flex justify-center">
             <Link href="/" className="hand-drawn-button px-6 py-2 text-sm">
-              <span className="text-2xl">←</span> <span>Abort / Back</span>
+              <span className="text-2xl">←</span> <span>Back</span>
             </Link>
           </div>
         </div>
