@@ -13,49 +13,7 @@ import Image from 'next/image';
 import RulesModal from '@/app/components/Events/modals/RulesModal';
 import PocModal from '@/app/components/Events/modals/PocModal';
 import { MessageSquare, ScrollText } from 'lucide-react';
-
-type TeamMember = {
-  _id: string;
-  username?: string;
-  fullName?: string;
-  isLeader?: boolean;
-};
-
-type TeamDetails = {
-  _id: string;
-  teamCode: string;
-  teamSize: number;
-  members: TeamMember[];
-};
-
-type EventDetails = {
-  _id: string;
-  eventName: string;
-  category: string;
-  date: string;
-  time: string;
-  duration?: string;
-  venue: string;
-  description: string;
-  banner?: string;
-  rules?: string[];
-  clubs?: string[];
-  pocs?: { name: string; mobile: string }[];
-  isTeamEvent: boolean;
-  isActive: boolean;
-  doc?: string;
-  minMembersPerTeam: number;
-  maxMembersPerTeam: number;
-  isPaidEvent: boolean;
-  fees: number;
-  prizePool: string;
-  userRegistration?: {
-    isRegistered: boolean;
-    isInTeam: boolean;
-    verified: boolean;
-  };
-  myTeam?: TeamDetails | null;
-};
+import { EventDetails } from '@/types/interface';
 
 const EventPage = () => {
   const params = useParams();

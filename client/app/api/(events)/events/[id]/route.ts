@@ -4,44 +4,7 @@ import Registration from "@/lib/models/Registrations";
 import Team from "@/lib/models/Team";
 import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
-
-type PopulatedTeamUser = {
-  _id: mongoose.Types.ObjectId;
-  username?: string;
-  fullName?: string;
-};
-
-type RegistrationLean = {
-  _id: mongoose.Types.ObjectId;
-  isInTeam?: boolean;
-  teamId?: mongoose.Types.ObjectId;
-  verified?: boolean;
-  createdAt?: Date;
-};
-
-type TeamLean = {
-  _id: mongoose.Types.ObjectId;
-  teamCode: string;
-  teamLeader?: PopulatedTeamUser;
-  team?: PopulatedTeamUser[];
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type MyTeamResponse = {
-  _id: string;
-  teamCode: string;
-  createdAt: Date;
-  updatedAt: Date;
-  members: {
-    _id: string;
-    username: string;
-    fullName: string;
-    isLeader: boolean;
-  }[];
-  teamSize: number;
-};
+import { MyTeamResponse, PopulatedTeamUser, RegistrationLean, TeamLean } from "@/types/interface";
 
 export async function GET(
   _request: Request,
