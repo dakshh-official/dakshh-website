@@ -11,7 +11,7 @@ import DialCarousel from "@/app/components/Events/DialCarousel";
 
 import RulesModal from "@/app/components/Events/modals/RulesModal";
 import PocModal from "@/app/components/Events/modals/PocModal";
-import { MessageSquare, ScrollText } from "lucide-react";
+import { MessageSquare, ScrollText, FileText } from "lucide-react";
 import { EventDetails } from "@/types/interface";
 
 const EventPage = () => {
@@ -573,6 +573,24 @@ const EventPage = () => {
                 </div>
               </HandDrawnCard>
             )}
+            {event.doc && (
+              <a
+                href={event.doc}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative block"
+              >
+                <HandDrawnCard className="p-6 transition-transform group-hover:-translate-y-1 bg-amber-900/20 group-hover:bg-amber-900/40 border-amber-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold uppercase">Download Mission Protocol</span>
+                    <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
+                      <FileText />
+                    </div>
+                  </div>
+                </HandDrawnCard>
+              </a>
+            )}
+
           </div>
         </div>
       </main>
