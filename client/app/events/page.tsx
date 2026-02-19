@@ -11,12 +11,12 @@ type PublicEvent = {
   _id: string;
   eventName: string;
   category:
-    | "Software"
-    | "Hardware"
-    | "Entrepreneurship"
-    | "Gaming"
-    | "Quiz"
-    | "Design and Prototyping";
+  | "Software"
+  | "Hardware"
+  | "Entrepreneurship"
+  | "Gaming"
+  | "Quiz"
+  | "Design and Prototyping";
   description: string;
   banner: string;
   clubs: string[];
@@ -32,6 +32,7 @@ type PublicEvent = {
 export default function Events() {
   const [events, setEvents] = useState<PublicEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayLoading, setDisplayLoading] = useState(true);
 
   async function getEvents(): Promise<PublicEvent[]> {
     setLoading(true);
@@ -58,7 +59,14 @@ export default function Events() {
     getEvents().then(setEvents);
   }, []);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setDisplayLoading(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  if (loading || displayLoading) {
     return (
       <div className="min-h-screen w-full bg-black text-white flex items-center justify-center">
         <Navbar />

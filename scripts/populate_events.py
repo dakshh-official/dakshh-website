@@ -11,7 +11,14 @@ DB_NAME = os.getenv("DB_NAME")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 FILE_PATH = "test.xlsx"
 
-VALID_CATEGORIES = ["Software", "Hardware", "Entrepreneurship", "Quiz", "Gaming", "Design and Prototyping"]
+VALID_CATEGORIES = [
+    "Software",
+    "Hardware",
+    "Entrepreneurship",
+    "Quiz",
+    "Gaming",
+    "Design and Prototyping"
+]
 
 
 def safe_int(value, default=0):
@@ -38,24 +45,21 @@ def clean_rules(text):
         line = line.strip()
         if not line:
             continue
-        # Remove numbering like "1. "
         if line[0].isdigit() and "." in line:
             line = line.split(".", 1)[1].strip()
         rules.append(line)
     return rules
 
+
 def resolve_banner(link):
     if pd.isna(link):
         return ""
-
     link = str(link).strip()
-
-    # Ensure it's a valid Cloudinary URL
     if link.startswith("https://res.cloudinary.com/"):
         return link
-
     print(f"⚠ Invalid Cloudinary URL: {link}")
     return ""
+
 
 def parse_and_upload_events(file_path):
     print("Connecting to MongoDB...")
@@ -71,7 +75,7 @@ def parse_and_upload_events(file_path):
 
     for _, row in df.iterrows():
 
-        # Detect new event
+        # ---- Detect new event ----
         if pd.notna(row.get("Event Name")):
 
             if current_event:
@@ -85,8 +89,10 @@ def parse_and_upload_events(file_path):
 
             min_members = safe_int(row.get("Minimum members per team"), 1)
             max_members = safe_int(row.get("Maximum members per team"), min_members)
-            # prize_pool = str(row.get("Prize Pool", "")).strip()
             fees = safe_float(row.get("Fees"), 0)
+
+            prize_pool = str(row.get("Prize Pool", "")).strip()
+            prize_pool = prize_pool if prize_pool else "TBA"
 
             rules_list = []
             if pd.notna(row.get("Rules")):
@@ -109,32 +115,43 @@ def parse_and_upload_events(file_path):
                 "venue": str(row.get("Venue", "")).strip(),
                 "description": str(row.get("Description", "")).strip(),
                 "banner": resolve_banner(row.get("Banner")),
+                "doc": str(row.get("Rulebook Link", "")).strip(),
+
                 "rules": rules_list,
                 "clubs": clubs_list,
+
                 "isTeamEvent": max_members > 1,
                 "minMembersPerTeam": min_members,
                 "maxMembersPerTeam": max_members,
+
                 "isPaidEvent": fees > 0,
-                "isFoodProvided": False,  # required by schema
-                "maxFoodServingsPerParticipant": 1,  # required by schema
                 "fees": fees,
-                "prizePool": "TBA",
-                # "prizePool": prize_pool if prize_pool else "TBD",
+                "prizePool": prize_pool,
+
+                "isFoodProvided": False,
+                "maxFoodServingsPerParticipant": 1,
+
+                "isActive": False,   # REQUIRED by schema
+
                 "pocs": [],
                 "registrations": []
             }
 
-        # Add POCs
+        # ---- Add POCs ----
         if current_event and pd.notna(row.get("POC name")):
-            current_event["pocs"].append({
-                "name": str(row["POC name"]).strip(),
-                "mobile": str(row.get("POC mobile", "")).strip()
-            })
+            name = str(row["POC name"]).strip()
+            mobile = str(row.get("POC mobile", "")).strip()
+
+            if name and mobile:
+                current_event["pocs"].append({
+                    "name": name,
+                    "mobile": mobile
+                })
 
     if current_event:
         events_to_upsert.append(current_event)
 
-    # --- Database Operation ---
+    # ---- Upload ----
     if events_to_upsert:
         print(f"Uploading {len(events_to_upsert)} events...")
 

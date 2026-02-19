@@ -11,7 +11,7 @@ import DialCarousel from "@/app/components/Events/DialCarousel";
 
 import RulesModal from "@/app/components/Events/modals/RulesModal";
 import PocModal from "@/app/components/Events/modals/PocModal";
-import { MessageSquare, ScrollText } from "lucide-react";
+import { MessageSquare, ScrollText, FileText } from "lucide-react";
 import { EventDetails } from "@/types/interface";
 
 const EventPage = () => {
@@ -38,6 +38,7 @@ const EventPage = () => {
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState<boolean>(false);
   const [teamCodeInput, setTeamCodeInput] = useState("");
+  const [displayLoading, setDisplayLoading] = useState(true);
 
   const [showRules, setShowRules] = useState(false);
   const [showPoc, setShowPoc] = useState(false);
@@ -97,6 +98,13 @@ const EventPage = () => {
       document.body.classList.add("loader-complete");
       document.body.classList.remove("loader-ready");
       document.body.style.overflow = "";
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setDisplayLoading(false), 800);
+      return () => clearTimeout(timer);
     }
   }, [loading]);
 
@@ -207,7 +215,7 @@ const EventPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || displayLoading) {
     return (
       <div className="min-h-screen w-screen bg-black text-white flex items-center justify-center">
         <Navbar />
@@ -231,7 +239,7 @@ const EventPage = () => {
           src="/kill.gif"
           alt="Loading"
           className="object-contain drop-shadow-2xl w-1/3 bg-none"
-          
+
         />
       </div>
     );
@@ -573,6 +581,24 @@ const EventPage = () => {
                 </div>
               </HandDrawnCard>
             )}
+            {event.doc && (
+              <a
+                href={event.doc}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative block"
+              >
+                <HandDrawnCard className="p-6 transition-transform group-hover:-translate-y-1 bg-amber-900/20 group-hover:bg-amber-900/40 border-amber-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold uppercase">Download Mission Protocol</span>
+                    <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
+                      <FileText />
+                    </div>
+                  </div>
+                </HandDrawnCard>
+              </a>
+            )}
+
           </div>
         </div>
       </main>
