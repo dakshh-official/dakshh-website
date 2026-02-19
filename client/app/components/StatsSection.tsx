@@ -28,7 +28,7 @@ export default function StatsSection() {
           return;
         }
 
-        setUsers(data.users.length);
+        setUsers((Math.floor(data.users.length / 100) + 1) * 100);
       } catch (error) {
         console.error(error);
       } finally {

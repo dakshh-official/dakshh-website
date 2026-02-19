@@ -330,12 +330,34 @@ export default function SpaceLoader() {
     }
   }, [visible, shouldShowLoader]);
 
+  const skipLoader = () => {
+    if (!shouldShowLoader) return;
+    setOpacity(0);
+    setTimeout(() => {
+      setVisible(false);
+      document.body.style.overflow = "";
+      document.body.classList.remove("loader-ready");
+      document.body.classList.add("loader-complete");
+      window.dispatchEvent(new Event("dakshh:loaderComplete"));
+      try {
+        window.sessionStorage.setItem(ANIMATIONS_SEEN_KEY, "true");
+      } catch {
+        // ignore
+      }
+    }, 500);
+  };
+
   if (!visible) return null;
 
   return (
     <div
-      className="fixed inset-0 z-9999 bg-black transition-opacity duration-500"
+      className="fixed inset-0 z-9999 bg-black transition-opacity duration-500 cursor-pointer"
       style={{ opacity }}
+      onClick={skipLoader}
+      onKeyDown={(e) => e.key === "Enter" && skipLoader()}
+      role="button"
+      tabIndex={0}
+      aria-label="Skip intro"
     >
       <canvas
         ref={canvasRef}
@@ -387,7 +409,7 @@ export default function SpaceLoader() {
               transform: "translate(-50%, -50%)",
             }}
           >
-            PRESENTS
+            PRESENT
           </div>
           <div
             className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold uppercase tracking-wider transition-opacity duration-500 absolute"

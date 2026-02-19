@@ -1,8 +1,10 @@
 import User from "@/lib/models/User";
+import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
+        await connect();
         const users = await User.find();
 
         if (!users) {

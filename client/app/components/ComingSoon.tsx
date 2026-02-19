@@ -37,15 +37,27 @@ export default function ComingSoon() {
     return () => clearInterval(i);
   }, [phase]);
 
+  const skipIntro = () => {
+    if (phase === 'intro') {
+      setPhase('fade-in');
+      document.body.style.overflow = '';
+    }
+  };
+
   return (
     <>
       {/* Black overlay - fades out when intro ends (DotOrbit stays as bg layer) */}
       <div
-        className="fixed inset-0 z-20 bg-black transition-opacity duration-700 pointer-events-none"
+        className="fixed inset-0 z-20 bg-black transition-opacity duration-700 cursor-pointer"
         style={{
           opacity: phase === 'intro' ? 1 : 0,
           pointerEvents: phase === 'intro' ? 'auto' : 'none',
         }}
+        onClick={skipIntro}
+        onKeyDown={(e) => e.key === 'Enter' && skipIntro()}
+        role="button"
+        tabIndex={phase === 'intro' ? 0 : -1}
+        aria-label="Skip intro"
         aria-hidden="true"
       />
 

@@ -3,12 +3,12 @@
 import Navbar from '@/app/components/Navbar';
 import { DotOrbit } from '@paper-design/shaders-react';
 import Crewmates from '@/app/components/Crewmates';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import HandDrawnCard from '@/app/components/HandDrawnCard';
 import DialCarousel from '@/app/components/Events/DialCarousel';
-import SpaceLoader from '@/app/components/SpaceLoader';
+import Image from 'next/image';
 
 import RulesModal from '@/app/components/Events/modals/RulesModal';
 import PocModal from '@/app/components/Events/modals/PocModal';
@@ -59,8 +59,21 @@ type EventDetails = {
 
 const EventPage = () => {
   const params = useParams();
-  const id = params?.id as string;
+  const pathname = usePathname();
   const router = useRouter();
+
+  // Resolve id: useParams can be undefined on direct load/hydration, fallback to pathname
+  const id = useMemo(() => {
+    const fromParams = params?.id;
+    if (typeof fromParams === 'string') return fromParams;
+    if (Array.isArray(fromParams) && fromParams[0]) return fromParams[0];
+    if (pathname?.startsWith('/events/')) {
+      const segments = pathname.split('/').filter(Boolean);
+      const eventsIdx = segments.indexOf('events');
+      if (eventsIdx !== -1 && segments[eventsIdx + 1]) return segments[eventsIdx + 1];
+    }
+    return null;
+  }, [params?.id, pathname]);
 
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [allEvents, setAllEvents] = useState<any[]>([]);
@@ -72,12 +85,17 @@ const EventPage = () => {
   const [showPoc, setShowPoc] = useState(false);
 
   const fetchData = async () => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
-    setLoading(true);
+    // Avoid flash: don't show loader if we already have this event (e.g. session refetch)
+    const alreadyHaveEvent = event?._id === id;
+    if (!alreadyHaveEvent) setLoading(true);
     let redirecting = false;
     try {
-      const eventRes = await fetch(`/api/events/${id}`);
+      const eventRes = await fetch(`/api/events/${id}`, { credentials: 'include' });
       if (eventRes.status === 401) {
         redirecting = true;
         const callbackUrl = encodeURIComponent(`/events/${id}`);
@@ -89,7 +107,7 @@ const EventPage = () => {
       const eventData = await eventRes.json();
       setEvent(eventData);
 
-      const similarEvents = await fetch(`/api/events/similar?category=${eventData.category}`);
+      const similarEvents = await fetch(`/api/events/similar?category=${eventData.category}`, { credentials: 'include' });
       if (similarEvents.ok) {
         const allData = await similarEvents.json();
         setAllEvents(allData);
@@ -105,6 +123,17 @@ const EventPage = () => {
   useEffect(() => {
     fetchData();
   }, [id]);
+
+  // Ensure content stays visible: globals.css hides main when body has neither
+  // loader-ready nor loader-complete. Providers sets loader-complete for non-home
+  // pages, but we reinforce it when loading finishes to avoid any timing edge cases.
+  useEffect(() => {
+    if (!loading) {
+      document.body.classList.add("loader-complete");
+      document.body.classList.remove("loader-ready");
+      document.body.style.overflow = "";
+    }
+  }, [loading]);
 
   const handleRegistrationResponse = async (registration: Response) => {
     const data = await registration.json().catch(() => ({}));
@@ -214,7 +243,22 @@ const EventPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen w-full bg-black text-white flex items-center justify-center">
-        <SpaceLoader />
+        <Image
+          src="/venting-in.gif"
+          alt="Loading"
+          className="object-contain drop-shadow-2xl"
+          height={120}
+          width={120}
+        />
+      </div>
+    );
+  }
+
+  // Only show invalid URL when we have neither id nor event (avoid flicker when id resolves late)
+  if (!id && !event) {
+    return (
+      <div className="min-h-screen w-full bg-black text-white flex items-center justify-center">
+        <p className="text-white/80">Invalid event URL.</p>
       </div>
     );
   }
@@ -247,7 +291,9 @@ const EventPage = () => {
       </div>
 
       {/* DIAL CAROUSEL (LEFT FIXED) */}
-      <DialCarousel events={allEvents} activeId={id} />
+      {id && (
+        <DialCarousel events={allEvents} activeId={id} />
+      )}
 
       {/* MAIN CONTENT LAYOUT */}
       <main className="relative z-20 pt-24 sm:pb-12 pb-20 px-4 w-full h-full flex flex-col items-center">
