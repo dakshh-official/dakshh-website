@@ -250,10 +250,26 @@ export default function ProfileClient({
                   </svg>
                 </button>
               </div>
-              <div className="flex flex-col text-center sm:text-center min-w-0 w-full">
+              <div className="relative flex flex-col text-center sm:text-center min-w-0 w-full">
                 <h1 className="hand-drawn-title text-white text-2xl! sm:text-5xl! mb-2 wrap-break-word">
                   {profile.username}
                 </h1>
+                {/* <button
+                  type="button"
+                  onClick={() => setAvatarModalOpen(true)}
+                  disabled={loading}
+                  className="absolute bottom-0 left-0 -translate-x-1/4 translate-y-1/4 sm:top-0 sm:right-0 sm:bottom-auto sm:left-auto sm:translate-x-1/4 sm:-translate-y-1/4 z-20 w-10 h-10 rounded-full bg-white text-black border-2 border-black shadow-[0_0_0_2px_rgba(0,0,0,0.35)] hover:bg-cyan transition-colors disabled:opacity-60 flex items-center justify-center cursor-pointer"
+                  title="Edit Username"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-6 h-6"
+                    aria-hidden="true"
+                    fill="currentColor"
+                  >
+                    <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11Zm14.71-9.04a1 1 0 0 0 0-1.42l-1.5-1.5a1 1 0 0 0-1.42 0l-1.13 1.13 3.75 3.75 1.3-1.3Z" />
+                  </svg>
+                </button> */}
                 <p className="text-cyan text-sm sm:text-xl break-all">
                   {profile.email || "No email"}
                 </p>
@@ -313,6 +329,21 @@ export default function ProfileClient({
                         <p className="text-white/50 text-xs">
                           3–30 characters, letters, numbers, underscores, hyphens
                         </p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-white text-sm">User Name</label>
+                        <input
+                          type="text"
+                          value={formData.username || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              username: e.target.value,
+                            })
+                          }
+                          className="w-full bg-black/30 border-2 border-white/30 rounded px-3 py-2 text-white focus:border-cyan outline-none"
+                          placeholder="Enter user name"
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="text-white text-sm">Full Name</label>
@@ -392,6 +423,17 @@ export default function ProfileClient({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                    <div>
+                      <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
+                        User Name
+                      </label>
+                      <p className="text-white text-lg break-words">
+                        {profile.username || (
+                          <span className="text-white/30 italic">Not set</span>
+                        )}
+                      </p>
+                    </div>
+
                     <div className="md:col-span-2">
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Username
@@ -400,6 +442,7 @@ export default function ProfileClient({
                         {profile.username}
                       </p>
                     </div>
+                    
                     <div>
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Full Name
