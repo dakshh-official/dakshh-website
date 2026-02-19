@@ -19,7 +19,7 @@ export default function StatsSection() {
   ];
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchUsers = async () => {
       try {
         const res = await fetch("/api/user/stats/users");
         const data = await res.json().catch(() => ({}));
@@ -35,7 +35,7 @@ export default function StatsSection() {
       }
     };
 
-    fetchEvents();
+    fetchUsers();
   }, []);
 
   return (

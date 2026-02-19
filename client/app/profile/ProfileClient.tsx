@@ -11,18 +11,8 @@ import AmongUsGame from "./AmongUsGame";
 import { DotOrbit } from "@paper-design/shaders-react";
 import EventsTab from "../components/Profile/EventsTab";
 import TeamsTab from "../components/Profile/TeamsTab";
-
-interface ProfileData {
-  username: string;
-  avatar: number | null;
-  email?: string;
-  fullName?: string;
-  phoneNumber?: string;
-  college?: string;
-  stream?: string;
-  isProfileComplete?: boolean;
-  qrPayload?: string;
-}
+import { LeaderBoard, ProfileData } from "@/types/interface";
+import LeaderboardCard from "../components/Profile/LeaderboardCard";
 
 export default function ProfileClient({
   initialUsername,
@@ -59,9 +49,7 @@ export default function ProfileClient({
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [gameOpen, setGameOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<
-    { username?: string; fullName?: string; amongUsScore: number; avatar?: number }[]
-  >([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderBoard[]>([]);
   const { update: updateSession } = useSession();
 
   useEffect(() => {
@@ -251,7 +239,7 @@ export default function ProfileClient({
                 </button>
               </div>
               <div className="relative flex flex-col text-center sm:text-center min-w-0 w-full">
-                <h1 className="hand-drawn-title text-white text-2xl! sm:text-5xl! mb-2 wrap-break-word">
+                <h1 className={`hand-drawn-title text-white text-2xl! ${profile.username.length > 12 ? "sm:text-4xl!" : "sm:text-5xl!"} mb-2 wrap-break-word `}>
                   {profile.username}
                 </h1>
                 {/* <button
@@ -283,13 +271,11 @@ export default function ProfileClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${
-                  tab.id === "arcade" ? "hidden md:inline-flex" : ""
-                } ${
-                  activeTab === tab.id
+                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${tab.id === "arcade" ? "hidden md:inline-flex" : ""
+                  } ${activeTab === tab.id
                     ? "bg-cyan text-black scale-105"
                     : "bg-transparent text-white border-white/50 hover:border-cyan hover:text-cyan"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -327,7 +313,7 @@ export default function ProfileClient({
                           autoComplete="username"
                         />
                         <p className="text-white/50 text-xs">
-                          3–30 characters, letters, numbers, underscores, hyphens
+                          3-30 characters, letters, numbers, underscores, hyphens
                         </p>
                       </div>
 
@@ -346,6 +332,7 @@ export default function ProfileClient({
                           placeholder="Enter full name"
                         />
                       </div>
+
                       <div className="space-y-2">
                         <label className="text-white text-sm">
                           Phone Number
@@ -409,16 +396,17 @@ export default function ProfileClient({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-
-                    <div className="md:col-span-2">
+                    <div>
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
-                        Username
+                        User Name
                       </label>
                       <p className="text-white text-lg wrap-break-word">
-                        {profile.username}
+                        {profile.username || (
+                          <span className="text-white/30 italic">Not set</span>
+                        )}
                       </p>
                     </div>
-                    
+
                     <div>
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Full Name
@@ -524,42 +512,8 @@ export default function ProfileClient({
                     PLAY GAME
                   </button>
                 </HandDrawnCard>
-                <HandDrawnCard className="p-6 mt-4">
-                  <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-4">
-                    Top 10 Leaderboard
-                  </h2>
-                  <div className="space-y-2">
-                    {leaderboard.length > 0 ? (
-                      leaderboard.map((entry, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between p-2 rounded bg-black/20 border border-white/10"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-cyan font-bold w-8">#{i + 1}</span>
-                            {entry.avatar != null && (
-                              <Image
-                                src={`/${entry.avatar}.png`}
-                                alt=""
-                                width={24}
-                                height={24}
-                                className="rounded-full object-cover w-6 h-6"
-                              />
-                            )}
-                            <span className="text-white font-medium truncate max-w-[140px] sm:max-w-[200px]">
-                              {entry.fullName || entry.username || "Anonymous"}
-                            </span>
-                          </div>
-                          <span className="text-[#fff675] font-bold shrink-0">
-                            {entry.amongUsScore}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-white/60 text-sm">No players yet. Be the first!</p>
-                    )}
-                  </div>
-                </HandDrawnCard>
+
+                <LeaderboardCard leaderboard={leaderboard} />
               </>
             )}
           </div>
