@@ -29,7 +29,7 @@ export default function Home() {
       </div>
       <div className="relative z-10 h-full">
         <Crewmates />
-        <div id="home" className="relative z-10">
+        <div id="home" className="relative z-10 pt-10">
           <Hero />
         </div>
         <div id="stats" className="relative z-10">

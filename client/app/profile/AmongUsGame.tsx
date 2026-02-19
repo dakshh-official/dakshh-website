@@ -37,12 +37,28 @@ function getColoredSprite(type: "IDLE" | "WALKING", color: keyof typeof COLORS) 
 
 // --- Game Logic ---
 
+type ItemType = "COIN" | "BOMB" | "SUPERBOMB" | "POWERUP_MAGNET" | "POWERUP_WILDCARD";
+type ActiveEffect = "COIN_MAGNET" | "BOMB_MAGNET" | null;
+
 interface Item {
     id: number;
     x: number;
     y: number;
-    type: "COIN" | "BOMB";
+    type: ItemType;
     spawnTime: number;
+}
+
+interface Imposter {
+    id: number;
+    x: number;
+    y: number;
+    color: keyof typeof COLORS;
+    spawnTime: number;
+    spriteFrame: number;
+    lastFrameTime: number;
+    turnLeft: boolean;
+    lifespan: number;   // ms until removal (scales with score at spawn)
+    glitchStart: number; // ms after spawn when glitch begins
 }
 
 interface FloatingText {
@@ -60,6 +76,8 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
     const playerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
     const [selectedColor, setSelectedColor] = useState<keyof typeof COLORS>("CYAN");
+    const selectedColorRef = useRef(selectedColor);
+    selectedColorRef.current = selectedColor;
 
     // Game State Refs (using refs to avoid stale closures in loop)
     const gameState = useRef({
@@ -75,14 +93,33 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
         spriteFrame: 0,
         lastFrameTime: 0,
         lastSpawnTime: 0,
+        lastImposterSpawn: 0,
 
-        items: [] as Item[], // Keep track in ref for game loop (avoids stale closures)
+        activeEffect: null as ActiveEffect,
+        effectEndTime: 0,
+
+        items: [] as Item[],
+        imposter: [] as Imposter[],
         floatingTexts: [] as FloatingText[],
+
+        playerHiddenUntil: 0,
+        respawnGlitchUntil: 0,
+        explosionAt: null as { x: number; y: number; spawnTime: number } | null,
     });
 
     const [score, setScore] = useState(0);
-    const [renderItems, setRenderItems] = useState<Item[]>([]); // For React rendering
+    const [explosion, setExplosion] = useState<{ x: number; y: number; spawnTime: number } | null>(null);
+    const [renderItems, setRenderItems] = useState<Item[]>([]);
     const [renderTexts, setRenderTexts] = useState<FloatingText[]>([]);
+    const [renderImposters, setRenderImposters] = useState<Imposter[]>([]);
+    const [activeEffectHud, setActiveEffectHud] = useState<{ effect: ActiveEffect; endTime: number } | null>(null);
+    const [, setHudTick] = useState(0);
+
+    useEffect(() => {
+        if (!activeEffectHud) return;
+        const id = setInterval(() => setHudTick(t => t + 1), 1000);
+        return () => clearInterval(id);
+    }, [activeEffectHud]);
 
 
     useEffect(() => {
@@ -93,7 +130,7 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
             gameState.current.limits = {
                 // Add padding to keep player inside "screen"
                 xStart: 80,
-                yStart: 200, // Top bar is ~150px, adding buffer
+                yStart: 50, // Top bar is ~150px, adding buffer
                 xEnd: rect.width - 20,
                 yEnd: rect.height - 20
             };
@@ -146,91 +183,191 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
         // Game Loop
         const loop = () => {
             const state = gameState.current;
-            const speed = 6; // slightly faster than original for smoothness
+            const now = Date.now();
+            const isHidden = state.playerHiddenUntil > now;
             let moved = false;
 
-            // Logic from original code ported and optimized
-            if (state.keys.left && state.x - speed > state.limits.xStart) {
-                state.x -= speed;
-                state.turnLeft = true;
-                moved = true;
-            }
-            if (state.keys.right && state.x + state.playerBounds.width + speed < state.limits.xEnd) {
-                state.x += speed;
-                state.turnLeft = false;
-                moved = true;
-            }
-            if (state.keys.top && state.y - speed > state.limits.yStart) {
-                state.y -= speed;
-                moved = true;
-            }
-            if (state.keys.down && state.y + state.playerBounds.height + speed < state.limits.yEnd) {
-                state.y += speed;
-                moved = true;
-            }
+            // Skip movement when player is hidden (respawning)
+            if (!isHidden) {
+                const speed = 6; // slightly faster than original for smoothness
 
-            // Animation Logic
-            if (moved) {
-                // Determine animation frame
-                const now = Date.now();
-                if (now - state.lastFrameTime > 150) {
-                    // Cycle: 0 (Walk1) -> 1 (Stand) -> 2 (Walk2) -> 3 (Stand)
-                    state.spriteFrame = (state.spriteFrame + 1) % 4;
-                    state.lastFrameTime = now;
+                if (state.keys.left && state.x - speed > state.limits.xStart) {
+                    state.x -= speed;
+                    state.turnLeft = true;
+                    moved = true;
                 }
-            } else {
-                state.spriteFrame = 0; // Reset
+                if (state.keys.right && state.x + state.playerBounds.width + speed < state.limits.xEnd) {
+                    state.x += speed;
+                    state.turnLeft = false;
+                    moved = true;
+                }
+                if (state.keys.top && state.y - speed > state.limits.yStart) {
+                    state.y -= speed;
+                    moved = true;
+                }
+                if (state.keys.down && state.y + state.playerBounds.height + speed < state.limits.yEnd) {
+                    state.y += speed;
+                    moved = true;
+                }
+
+                if (moved) {
+                    if (now - state.lastFrameTime > 150) {
+                        state.spriteFrame = (state.spriteFrame + 1) % 4;
+                        state.lastFrameTime = now;
+                    }
+                } else {
+                    state.spriteFrame = 0;
+                }
             }
 
             // --- Item Spawning & Collision ---
-            const now = Date.now();
-
-            // Spawn every 2 seconds
+            // Spawn every 2 seconds - weighted: COIN 60%, BOMB 25%, SUPERBOMB 5%, POWERUP_MAGNET 6%, POWERUP_WILDCARD 4%
             if (now - state.lastSpawnTime > 2000) {
-                const isCoin = Math.random() > 0.3; // 70% Coin, 30% Bomb
+                const r = Math.random();
+                let itemType: ItemType;
+                if (r < 0.6) itemType = "COIN";
+                else if (r < 0.85) itemType = "BOMB";
+                else if (r < 0.9) itemType = "SUPERBOMB";
+                else if (r < 0.96) itemType = "POWERUP_MAGNET";
+                else itemType = "POWERUP_WILDCARD";
+
                 let spawnX = 0;
                 let spawnY = 0;
                 let validSpawn = false;
                 let attempts = 0;
 
-                // Attempt to find a non-overlapping spawn point (up to 5 tries)
-                while (!validSpawn && attempts < 5) {
-                    spawnX = Math.random() * (state.limits.xEnd - state.limits.xStart - 60) + state.limits.xStart;
-                    spawnY = Math.random() * (state.limits.yEnd - state.limits.yStart - 60) + state.limits.yStart;
+                const playerCenterX = state.x + state.playerBounds.width / 2;
+                const playerCenterY = state.y + state.playerBounds.height / 2;
 
-                    // Calculate distance to player center
-                    const playerCenterX = state.x + state.playerBounds.width / 2;
-                    const playerCenterY = state.y + state.playerBounds.height / 2;
+                // Superbomb spawns close to player (60-120px)
+                const isSuperbomb = itemType === "SUPERBOMB";
+                const minDist = isSuperbomb ? 60 : 150;
+                const maxDist = isSuperbomb ? 120 : Infinity;
+
+                while (!validSpawn && attempts < 10) {
+                    if (isSuperbomb) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 60 + Math.random() * 60;
+                        spawnX = playerCenterX + Math.cos(angle) * dist - 30;
+                        spawnY = playerCenterY + Math.sin(angle) * dist - 30;
+                        spawnX = Math.max(state.limits.xStart, Math.min(state.limits.xEnd - 60, spawnX));
+                        spawnY = Math.max(state.limits.yStart, Math.min(state.limits.yEnd - 60, spawnY));
+                    } else {
+                        spawnX = Math.random() * (state.limits.xEnd - state.limits.xStart - 60) + state.limits.xStart;
+                        spawnY = Math.random() * (state.limits.yEnd - state.limits.yStart - 60) + state.limits.yStart;
+                    }
+
                     const itemCenterX = spawnX + 30;
                     const itemCenterY = spawnY + 30;
-
                     const dx = playerCenterX - itemCenterX;
                     const dy = playerCenterY - itemCenterY;
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
-                    // Ensure at least 150px away from player center
-                    if (dist > 150) {
-                        validSpawn = true;
-                    }
+                    if (dist >= minDist && dist <= (maxDist === Infinity ? 9999 : maxDist)) validSpawn = true;
                     attempts++;
                 }
 
                 if (validSpawn) {
-                    const newItem: Item = {
-                        id: now,
-                        x: spawnX,
-                        y: spawnY,
-                        type: isCoin ? "COIN" : "BOMB",
-                        spawnTime: now
-                    };
-
-                    state.items.push(newItem);
+                    state.items.push({ id: now, x: spawnX, y: spawnY, type: itemType, spawnTime: now });
                     state.lastSpawnTime = now;
-
-                    // Trigger render update
                     setRenderItems([...state.items]);
                 }
             }
+
+            // Imposter spawn every 18 seconds
+            if (now - state.lastImposterSpawn > 18000) {
+                const colorKeys = (Object.keys(COLORS) as Array<keyof typeof COLORS>).filter(c => c !== selectedColorRef.current);
+                if (colorKeys.length > 0) {
+                    const imposterColor = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+                    const edge = Math.floor(Math.random() * 4);
+                    let ix: number, iy: number;
+                    if (edge === 0) { ix = state.limits.xStart + Math.random() * (state.limits.xEnd - state.limits.xStart - 85); iy = state.limits.yStart; }
+                    else if (edge === 1) { ix = state.limits.xEnd - 85; iy = state.limits.yStart + Math.random() * (state.limits.yEnd - state.limits.yStart - 150); }
+                    else if (edge === 2) { ix = state.limits.xStart + Math.random() * (state.limits.xEnd - state.limits.xStart - 85); iy = state.limits.yEnd - 150; }
+                    else { ix = state.limits.xStart; iy = state.limits.yStart + Math.random() * (state.limits.yEnd - state.limits.yStart - 150); }
+                    const impCenterX = ix + 42.5;
+                    const pcx = state.x + state.playerBounds.width / 2;
+                    // Lifespan scales with score: base 5s, max 15s at score 500+
+                    const scoreAtSpawn = scoreRef.current;
+                    const scoreFactor = Math.min(Math.max(scoreAtSpawn, 0) / 500, 1);
+                    const lifespan = 5000 + scoreFactor * 10000;   // 5s to 15s
+                    const glitchStart = 2000 + scoreFactor * 10000; // 2s to 12s (glitch phase always 3s)
+                    state.imposter.push({
+                        id: now,
+                        x: ix,
+                        y: iy,
+                        color: imposterColor,
+                        spawnTime: now,
+                        spriteFrame: 0,
+                        lastFrameTime: now,
+                        turnLeft: pcx - impCenterX < 0,
+                        lifespan,
+                        glitchStart
+                    });
+                    state.lastImposterSpawn = now;
+                    setRenderImposters([...state.imposter]);
+                }
+            }
+
+            // Active effect expiry
+            if (state.activeEffect && now > state.effectEndTime) {
+                state.activeEffect = null;
+                setActiveEffectHud(null);
+            }
+
+            // Magnet pull - move coins or bombs toward player when effect active
+            const magnetRange = 400;
+            const baseMagnetSpeed = 4;
+            if (state.activeEffect === "COIN_MAGNET" || state.activeEffect === "BOMB_MAGNET") {
+                const pullType = state.activeEffect === "COIN_MAGNET" ? "COIN" : "BOMB";
+                const playerCenterX = state.x + state.playerBounds.width / 2;
+                const playerCenterY = state.y + state.playerBounds.height / 2;
+
+                for (const item of state.items) {
+                    if (item.type !== pullType) continue;
+                    const itemCenterX = item.x + 30;
+                    const itemCenterY = item.y + 30;
+                    const dx = playerCenterX - itemCenterX;
+                    const dy = playerCenterY - itemCenterY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > magnetRange || dist < 5) continue;
+                    const speed = baseMagnetSpeed * (1 + 200 / dist);
+                    const moveX = (dx / dist) * speed;
+                    const moveY = (dy / dist) * speed;
+                    item.x += moveX;
+                    item.y += moveY;
+                }
+                setRenderItems([...state.items]);
+            }
+
+            // Imposter lifespan: per-imposter (8s base, up to 15s at score 500+)
+            const activeImpostersByLifespan = state.imposter.filter(imp => now - imp.spawnTime < imp.lifespan);
+            if (activeImpostersByLifespan.length !== state.imposter.length) {
+                state.imposter = activeImpostersByLifespan;
+            }
+
+            // Imposter movement - move toward player (slower), with walking animation
+            const imposterSpeed = 1.2;
+            const playerCenterX = state.x + state.playerBounds.width / 2;
+            const playerCenterY = state.y + state.playerBounds.height / 2;
+            for (const imp of state.imposter) {
+                const impCenterX = imp.x + 42.5;
+                const impCenterY = imp.y + 75;
+                const dx = playerCenterX - impCenterX;
+                const dy = playerCenterY - impCenterY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 2) {
+                    imp.x += (dx / dist) * imposterSpeed;
+                    imp.y += (dy / dist) * imposterSpeed;
+                    imp.turnLeft = dx < 0;
+                    // Walking animation: cycle frame every 150ms (same as player)
+                    if (now - imp.lastFrameTime > 150) {
+                        imp.spriteFrame = (imp.spriteFrame + 1) % 4;
+                        imp.lastFrameTime = now;
+                    }
+                }
+            }
+            setRenderImposters([...state.imposter]);
 
             // Collision Detection
             // Player Rect (approximate) - x,y is topleft. Width 85, Height 150.
@@ -245,11 +382,53 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
             let scoreChanged = false;
             let currentScoreChange = 0;
 
-            // Filter out collected items
-            const activeItems = state.items.filter(item => {
-                const itemHitbox = { x: item.x, y: item.y, width: 60, height: 60 }; // 60x60 item size from CSS
+            // Imposter collision (no collision during glitch phase or when player is respawning)
+            const activeImposters = state.imposter.filter(imp => {
+                if (isHidden) return true; // No collision while respawning
+                const age = now - imp.spawnTime;
+                if (age >= imp.glitchStart) return true; // Skip collision check, will be removed by lifespan filter
+                const impHitbox = { x: imp.x + 5, y: imp.y + 5, width: 75, height: 140 };
+                const isColliding = (
+                    playerHitbox.x < impHitbox.x + impHitbox.width &&
+                    playerHitbox.x + playerHitbox.width > impHitbox.x &&
+                    playerHitbox.y < impHitbox.y + impHitbox.height &&
+                    playerHitbox.y + playerHitbox.height > impHitbox.y
+                );
+                if (isColliding) {
+                    const explosionX = (playerHitbox.x + impHitbox.x + impHitbox.width) / 2 - 40;
+                    const explosionY = (playerHitbox.y + impHitbox.y + impHitbox.height) / 2 - 40;
+                    state.explosionAt = { x: explosionX, y: explosionY, spawnTime: now };
+                    state.playerHiddenUntil = now + 500;
+                    state.respawnGlitchUntil = now + 1000;
+                    const centerX = (state.limits.xStart + state.limits.xEnd) / 2 - state.playerBounds.width / 2;
+                    const centerY = Math.max(state.limits.yStart, (state.limits.yStart + state.limits.yEnd) / 2 - state.playerBounds.height / 2);
+                    state.x = centerX;
+                    state.y = centerY;
+                    state.floatingTexts.push({
+                        id: Date.now() + Math.random(),
+                        x: imp.x,
+                        y: imp.y,
+                        value: "💥 -100",
+                        color: "#ff3333",
+                        spawnTime: Date.now()
+                    });
+                    setExplosion({ x: explosionX, y: explosionY, spawnTime: now });
+                    setScore(prev => prev - 100);
+                    return false;
+                }
+                return true;
+            });
+            if (activeImposters.length !== state.imposter.length) {
+                state.imposter = activeImposters;
+                setRenderImposters([...state.imposter]);
+            }
 
-                // AABB Collision
+            // Filter out collected items (no collision when respawning)
+            const activeItems = state.items.filter(item => {
+                if (isHidden) return true; // No item collision while respawning
+                const itemSize = item.type === "SUPERBOMB" ? 70 : 60;
+                const itemHitbox = { x: item.x, y: item.y, width: itemSize, height: itemSize };
+
                 const isColliding = (
                     playerHitbox.x < itemHitbox.x + itemHitbox.width &&
                     playerHitbox.x + playerHitbox.width > itemHitbox.x &&
@@ -258,36 +437,67 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                 );
 
                 if (isColliding) {
-                    let text = "";
-                    let color = "";
-
-                    if (item.type === "COIN") {
+                    if (item.type === "POWERUP_MAGNET") {
+                        state.activeEffect = "COIN_MAGNET";
+                        state.effectEndTime = now + 8000;
+                        setActiveEffectHud({ effect: "COIN_MAGNET", endTime: now + 8000 });
+                        state.floatingTexts.push({
+                            id: Date.now() + Math.random(),
+                            x: item.x,
+                            y: item.y,
+                            value: "Magnet!",
+                            color: "#60a5fa",
+                            spawnTime: Date.now()
+                        });
+                    } else if (item.type === "POWERUP_WILDCARD") {
+                        const isBombMagnet = Math.random() < 0.5;
+                        state.activeEffect = isBombMagnet ? "BOMB_MAGNET" : "COIN_MAGNET";
+                        state.effectEndTime = now + 8000;
+                        setActiveEffectHud({ effect: state.activeEffect, endTime: now + 8000 });
+                        state.floatingTexts.push({
+                            id: Date.now() + Math.random(),
+                            x: item.x,
+                            y: item.y,
+                            value: isBombMagnet ? "Bomb magnet!" : "Magnet!",
+                            color: isBombMagnet ? "#ff3333" : "#60a5fa",
+                            spawnTime: Date.now()
+                        });
+                    } else if (item.type === "COIN") {
                         currentScoreChange += 10;
-                        text = "+10";
-                        color = "#4ade80"; // Green (Tailwind green-400 equivalent, visible on dark bg)
-                    } else {
+                        state.floatingTexts.push({
+                            id: Date.now() + Math.random(),
+                            x: item.x,
+                            y: item.y,
+                            value: "+10",
+                            color: "#4ade80",
+                            spawnTime: Date.now()
+                        });
+                    } else if (item.type === "BOMB") {
                         currentScoreChange -= 10;
-                        text = "-10";
-                        color = "#ff3333";
+                        state.floatingTexts.push({
+                            id: Date.now() + Math.random(),
+                            x: item.x,
+                            y: item.y,
+                            value: "-10",
+                            color: "#ff3333",
+                            spawnTime: Date.now()
+                        });
+                    } else if (item.type === "SUPERBOMB") {
+                        currentScoreChange -= 50;
+                        state.floatingTexts.push({
+                            id: Date.now() + Math.random(),
+                            x: item.x,
+                            y: item.y,
+                            value: "💥 -50",
+                            color: "#ff3333",
+                            spawnTime: Date.now()
+                        });
                     }
-
-                    // Spawn Floating Text
-                    state.floatingTexts.push({
-                        id: Date.now() + Math.random(),
-                        x: item.x,
-                        y: item.y,
-                        value: text,
-                        color: color,
-                        spawnTime: Date.now()
-                    });
-
                     scoreChanged = true;
-                    return false; // Remove from list
+                    return false;
                 }
 
-                // Also remove old items (> 10s)
                 if (now - item.spawnTime > 10000) return false;
-
                 return true;
             });
 
@@ -318,19 +528,27 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
             // Map Frame 2 to Sprite Index 1 (since we only have 2 walk frames in SVG)
             const walkSpriteIndex = state.spriteFrame === 2 ? 1 : 0;
 
+            // Clear explosion after 500ms
+            if (state.explosionAt && now - state.explosionAt.spawnTime > 500) {
+                state.explosionAt = null;
+                setExplosion(null);
+            }
+
             // Update DOM
             if (playerRef.current) {
-                playerRef.current.style.setProperty("--x", state.x + "px");
-                playerRef.current.style.setProperty("--y", state.y + "px");
+                const wrapper = playerRef.current.parentElement;
+                if (wrapper) {
+                    wrapper.style.setProperty("--x", state.x + "px");
+                    wrapper.style.setProperty("--y", state.y + "px");
+                }
 
-                // Js driven sprite position for walking frames
                 const bgPos = -(walkSpriteIndex * 85);
                 playerRef.current.style.setProperty("--bg-pos-x", bgPos + "px");
 
-                // Classes - Toggle Walking Class based on frame
-                // When isVisualWalk is false, it falls back to Idle sprite (CSS default)
                 playerRef.current.classList.toggle(styles.playerWalking, isVisualWalk);
                 playerRef.current.classList.toggle(styles.playerTurnLeft, state.turnLeft);
+                playerRef.current.classList.toggle(styles.playerHide, isHidden);
+                playerRef.current.classList.toggle(styles.playerRespawnGlitch, !isHidden && state.respawnGlitchUntil > now);
             }
 
             requestRef.current = requestAnimationFrame(loop);
@@ -435,13 +653,62 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                     <div ref={containerRef} className={`${styles.container} ${styles.crtEffect}`}>
                         <div className={styles.scoreBoard}>SCORE: {score}</div>
 
+                        {activeEffectHud && activeEffectHud.endTime > Date.now() && (
+                            <div className={`${styles.effectHud} ${activeEffectHud.effect === "BOMB_MAGNET" ? styles.effectHudDanger : ""}`}>
+                                {activeEffectHud.effect === "COIN_MAGNET" ? "MAGNET" : "BOMB MAGNET!"}{" "}
+                                {Math.max(0, Math.ceil((activeEffectHud.endTime - Date.now()) / 1000))}s
+                            </div>
+                        )}
+
                         {renderItems.map(item => (
                             <div
                                 key={item.id}
-                                className={`${styles.item} ${item.type === "COIN" ? styles.coin : styles.bomb}`}
+                                className={`${styles.item} ${
+                                    item.type === "COIN" ? styles.coin :
+                                    item.type === "BOMB" ? styles.bomb :
+                                    item.type === "SUPERBOMB" ? styles.superbomb :
+                                    item.type === "POWERUP_MAGNET" ? styles.powerupMagnet :
+                                    styles.powerupWildcard
+                                }`}
                                 style={{ "--x": `${item.x}px`, "--y": `${item.y}px` } as React.CSSProperties}
                             />
                         ))}
+
+                        {renderImposters.map(imp => {
+                            const isVisualWalk = imp.spriteFrame === 0 || imp.spriteFrame === 2;
+                            const walkSpriteIndex = imp.spriteFrame === 2 ? 1 : 0;
+                            const bgPos = -(walkSpriteIndex * 85);
+                            const age = Date.now() - imp.spawnTime;
+                            const isGlitching = age >= imp.glitchStart;
+                            return (
+                                <div
+                                    key={imp.id}
+                                    className={styles.imposterOuter}
+                                    style={{ "--x": `${imp.x}px`, "--y": `${imp.y}px` } as React.CSSProperties}
+                                >
+                                    <div
+                                        className={`${styles.imposter} ${isVisualWalk ? styles.imposterWalking : ""} ${imp.turnLeft ? styles.imposterTurnLeft : ""} ${isGlitching ? styles.imposterGlitching : ""}`}
+                                        style={{
+                                            "--bg-pos-x": `${bgPos}px`,
+                                            "--sprite-idle-url": `url("${getColoredSprite("IDLE", imp.color)}")`,
+                                            "--sprite-walking-url": `url("${getColoredSprite("WALKING", imp.color)}")`
+                                        } as React.CSSProperties}
+                                    />
+                                </div>
+                            );
+                        })}
+
+                        {explosion && Date.now() - explosion.spawnTime < 500 && (
+                            <div
+                                className={styles.explosion}
+                                style={{
+                                    "--x": `${explosion.x}px`,
+                                    "--y": `${explosion.y}px`
+                                } as React.CSSProperties}
+                            >
+                                <span className={styles.explosionEmoji}>💥</span>
+                            </div>
+                        )}
 
                         {renderTexts.map(text => (
                             <div
@@ -457,7 +724,9 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                             </div>
                         ))}
 
-                        <div ref={playerRef} className={styles.player} />
+                        <div className={styles.playerWrapper} style={{ "--x": `${gameState.current.x}px`, "--y": `${gameState.current.y}px` } as React.CSSProperties}>
+                            <div ref={playerRef} className={styles.player} />
+                        </div>
 
 
                         <div className={styles.custom}>

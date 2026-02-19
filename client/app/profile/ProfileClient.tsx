@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "../components/Navbar";
@@ -59,6 +59,10 @@ export default function ProfileClient({
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [gameOpen, setGameOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<
+    { username?: string; fullName?: string; amongUsScore: number; avatar?: number }[]
+  >([]);
+  const { update: updateSession } = useSession();
 
   useEffect(() => {
     if (qrModalOpen) {
@@ -71,6 +75,26 @@ export default function ProfileClient({
       document.body.style.overflow = "auto";
     };
   }, [qrModalOpen]);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch("/api/arcade/leaderboard");
+      if (res.ok) {
+        const data = await res.json();
+        setLeaderboard(data.leaderboard ?? []);
+      }
+    } catch {
+      setLeaderboard([]);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "arcade") fetchLeaderboard();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!gameOpen && activeTab === "arcade") fetchLeaderboard();
+  }, [gameOpen, activeTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,6 +151,7 @@ export default function ProfileClient({
         ...data,
       }));
       setIsEditing(false);
+      if (formData.username !== undefined) await updateSession();
     } else {
       const errorData = await res.json();
       alert(errorData.error || "Failed to update profile");
@@ -284,6 +309,27 @@ export default function ProfileClient({
                 {isEditing ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-white text-sm">Username</label>
+                        <input
+                          type="text"
+                          value={formData.username || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              username: e.target.value,
+                            })
+                          }
+                          className="w-full bg-black/30 border-2 border-white/30 rounded px-3 py-2 text-white focus:border-cyan outline-none"
+                          placeholder="crewmate123"
+                          minLength={3}
+                          maxLength={30}
+                          autoComplete="username"
+                        />
+                        <p className="text-white/50 text-xs">
+                          3–30 characters, letters, numbers, underscores, hyphens
+                        </p>
+                      </div>
                       <div className="space-y-2">
                         <label className="text-white text-sm">User Name</label>
                         <input
@@ -377,7 +423,6 @@ export default function ProfileClient({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-
                     <div>
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         User Name
@@ -389,11 +434,20 @@ export default function ProfileClient({
                       </p>
                     </div>
 
+                    <div className="md:col-span-2">
+                      <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
+                        Username
+                      </label>
+                      <p className="text-white text-lg wrap-break-word">
+                        {profile.username}
+                      </p>
+                    </div>
+                    
                     <div>
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Full Name
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.fullName || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -403,7 +457,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Phone Number
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.phoneNumber || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -413,7 +467,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         College
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.college || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -423,7 +477,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Stream
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.stream || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -477,22 +531,60 @@ export default function ProfileClient({
             {activeTab === "events" && <EventsTab />}
 
             {activeTab === "arcade" && (
-              <HandDrawnCard className="p-6">
-                <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-2">
-                  Bored?
-                </h2>
-                <p className="text-cyan text-sm mb-4">Welcome to the Arcade!</p>
-                <p className="text-white/70 text-sm mb-4 md:hidden">
-                  This game is only available on laptops/desktops.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setGameOpen(true)}
-                  className="hand-drawn-button w-full py-4 text-lg hidden md:block"
-                >
-                  PLAY GAME
-                </button>
-              </HandDrawnCard>
+              <>
+                <HandDrawnCard className="p-6">
+                  <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-2">
+                    Bored?
+                  </h2>
+                  <p className="text-cyan text-sm mb-4">Welcome to the Arcade!</p>
+                  <p className="text-white/70 text-sm mb-4 md:hidden">
+                    This game is only available on laptops/desktops.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setGameOpen(true)}
+                    className="hand-drawn-button w-full py-4 text-lg hidden md:block"
+                  >
+                    PLAY GAME
+                  </button>
+                </HandDrawnCard>
+                <HandDrawnCard className="p-6 mt-4">
+                  <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-4">
+                    Top 10 Leaderboard
+                  </h2>
+                  <div className="space-y-2">
+                    {leaderboard.length > 0 ? (
+                      leaderboard.map((entry, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between p-2 rounded bg-black/20 border border-white/10"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-cyan font-bold w-8">#{i + 1}</span>
+                            {entry.avatar != null && (
+                              <Image
+                                src={`/${entry.avatar}.png`}
+                                alt=""
+                                width={24}
+                                height={24}
+                                className="rounded-full object-cover w-6 h-6"
+                              />
+                            )}
+                            <span className="text-white font-medium truncate max-w-[140px] sm:max-w-[200px]">
+                              {entry.fullName || entry.username || "Anonymous"}
+                            </span>
+                          </div>
+                          <span className="text-[#fff675] font-bold shrink-0">
+                            {entry.amongUsScore}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-white/60 text-sm">No players yet. Be the first!</p>
+                    )}
+                  </div>
+                </HandDrawnCard>
+              </>
             )}
           </div>
 

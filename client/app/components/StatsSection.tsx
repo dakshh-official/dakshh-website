@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import HandDrawnCard from './HandDrawnCard';
 
 interface Stat {
@@ -7,14 +9,35 @@ interface Stat {
   color: string;
 }
 
-const stats: Stat[] = [
-  { label: 'Total Prize Pool', value: '₹1,000,000+', color: 'text-yellow' },
-  { label: 'Participants', value: '5,000+', color: 'text-cyan' },
-  { label: 'Events', value: '20+', color: 'text-green' },
-  { label: 'Colleges', value: '50+', color: 'text-red' },
-];
-
 export default function StatsSection() {
+  const [users, setUsers] = useState<number>(200);
+  const stats: Stat[] = [
+    { label: 'Total Prize Pool', value: '₹1,000,000+', color: 'text-yellow' },
+    { label: 'Participants', value: `${users}+`, color: 'text-cyan' },
+    { label: 'Events', value: '20+', color: 'text-green' },
+    { label: 'Categories & tracks', value: '6+', color: 'text-red' },
+  ];
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch("/api/user/stats/users");
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          return;
+        }
+
+        setUsers((Math.floor(data.users.length / 100) + 1) * 100);
+      } catch (error) {
+        console.error(error);
+      } finally {
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   return (
     <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
       <h2 className="text-center hand-drawn-title text-white mb-8 sm:mb-10 md:mb-12 text-2xl sm:text-3xl md:text-4xl lg:text-5xl">Festival Stats</h2>
