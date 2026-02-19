@@ -4,9 +4,6 @@ export type UserRole = (typeof USER_ROLES)[number];
 
 export const SUPER_ADMIN_EMAIL = "dakshhtechteam@gmail.com";
 
-const ASSIGNABLE_ROLES = ["volunteer", "admin"] as const;
-export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
-
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -68,13 +65,3 @@ export function hasAnyRole(
   return allowedRoles.some((role) => roles.includes(role));
 }
 
-export function resolveDashboardPath(roles: UserRole[] | undefined): string | null {
-  if (hasRole(roles, "super_admin")) return "/dashboard/super-admin";
-  if (hasRole(roles, "admin")) return "/dashboard/admin";
-  if (hasRole(roles, "volunteer")) return "/dashboard/volunteer";
-  return null;
-}
-
-export function isAssignableRole(role: string): role is AssignableRole {
-  return ASSIGNABLE_ROLES.includes(role as AssignableRole);
-}

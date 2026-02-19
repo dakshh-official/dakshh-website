@@ -59,6 +59,14 @@ const eventSchema = new Schema(
       required: true,
       default: false,
     },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    doc: {
+      type: String,
+    },
     pocs: [
       {
         name: {

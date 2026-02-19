@@ -4,17 +4,11 @@ import Navbar from "@/app/components/Navbar";
 import HandDrawnCard from "@/app/components/HandDrawnCard";
 import { DotOrbit } from "@paper-design/shaders-react";
 import { getSessionRoleContext } from "@/lib/server-role-access";
-import { resolveDashboardPath } from "@/lib/roles";
 
 export default async function DashboardPage() {
   const context = await getSessionRoleContext();
   if (!context) {
     redirect("/auth?callbackUrl=/dashboard");
-  }
-
-  const dashboardPath = resolveDashboardPath(context.roles);
-  if (dashboardPath) {
-    redirect(dashboardPath);
   }
 
   return (
@@ -37,9 +31,9 @@ export default async function DashboardPage() {
       <div className="relative z-10 min-h-screen pt-24 px-4">
         <div className="max-w-2xl mx-auto">
           <HandDrawnCard className="p-8 text-center">
-            <h1 className="hand-drawn-title text-white text-3xl mb-4">Dashboard Access Needed</h1>
+            <h1 className="hand-drawn-title text-white text-3xl mb-4">Dashboard</h1>
             <p className="text-white/80 mb-6">
-              You are signed in but do not currently have a Volunteer, Admin, or Super Admin role.
+              Staff access is through the admin panel. Participants can view their profile and events.
             </p>
             <Link href="/" className="hand-drawn-button inline-block px-6 py-2">
               Go Home

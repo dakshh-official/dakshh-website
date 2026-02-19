@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "../components/Navbar";
@@ -11,18 +11,8 @@ import AmongUsGame from "./AmongUsGame";
 import { DotOrbit } from "@paper-design/shaders-react";
 import EventsTab from "../components/Profile/EventsTab";
 import TeamsTab from "../components/Profile/TeamsTab";
-
-interface ProfileData {
-  username: string;
-  avatar: number | null;
-  email?: string;
-  fullName?: string;
-  phoneNumber?: string;
-  college?: string;
-  stream?: string;
-  isProfileComplete?: boolean;
-  qrPayload?: string;
-}
+import { LeaderBoard, ProfileData } from "@/types/interface";
+import LeaderboardCard from "../components/Profile/LeaderboardCard";
 
 export default function ProfileClient({
   initialUsername,
@@ -59,6 +49,40 @@ export default function ProfileClient({
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [gameOpen, setGameOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderBoard[]>([]);
+  const { update: updateSession } = useSession();
+
+  useEffect(() => {
+    if (qrModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [qrModalOpen]);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch("/api/arcade/leaderboard");
+      if (res.ok) {
+        const data = await res.json();
+        setLeaderboard(data.leaderboard ?? []);
+      }
+    } catch {
+      setLeaderboard([]);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "arcade") fetchLeaderboard();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!gameOpen && activeTab === "arcade") fetchLeaderboard();
+  }, [gameOpen, activeTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +107,7 @@ export default function ProfileClient({
         });
 
         setFormData({
+          username: data.username ?? "",
           fullName: data.fullName ?? "",
           phoneNumber: data.phoneNumber ?? "",
           college: data.college ?? "",
@@ -114,6 +139,7 @@ export default function ProfileClient({
         ...data,
       }));
       setIsEditing(false);
+      if (formData.username !== undefined) await updateSession();
     } else {
       const errorData = await res.json();
       alert(errorData.error || "Failed to update profile");
@@ -212,11 +238,27 @@ export default function ProfileClient({
                   </svg>
                 </button>
               </div>
-              <div className="flex flex-col text-center sm:text-left min-w-0 w-full">
-                <h1 className="hand-drawn-title text-white text-3xl sm:text-4xl mb-2 break-words">
+              <div className="relative flex flex-col text-center sm:text-center min-w-0 w-full">
+                <h1 className={`hand-drawn-title text-white text-2xl! ${profile.username.length > 12 ? "sm:text-4xl!" : "sm:text-5xl!"} mb-2 wrap-break-word `}>
                   {profile.username}
                 </h1>
-                <p className="text-cyan text-sm break-all">
+                {/* <button
+                  type="button"
+                  onClick={() => setAvatarModalOpen(true)}
+                  disabled={loading}
+                  className="absolute bottom-0 left-0 -translate-x-1/4 translate-y-1/4 sm:top-0 sm:right-0 sm:bottom-auto sm:left-auto sm:translate-x-1/4 sm:-translate-y-1/4 z-20 w-10 h-10 rounded-full bg-white text-black border-2 border-black shadow-[0_0_0_2px_rgba(0,0,0,0.35)] hover:bg-cyan transition-colors disabled:opacity-60 flex items-center justify-center cursor-pointer"
+                  title="Edit Username"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-6 h-6"
+                    aria-hidden="true"
+                    fill="currentColor"
+                  >
+                    <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11Zm14.71-9.04a1 1 0 0 0 0-1.42l-1.5-1.5a1 1 0 0 0-1.42 0l-1.13 1.13 3.75 3.75 1.3-1.3Z" />
+                  </svg>
+                </button> */}
+                <p className="text-cyan text-sm sm:text-xl break-all">
                   {profile.email || "No email"}
                 </p>
               </div>
@@ -229,13 +271,11 @@ export default function ProfileClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${
-                  tab.id === "arcade" ? "hidden md:inline-flex" : ""
-                } ${
-                  activeTab === tab.id
+                className={`hand-drawn-button px-4 py-2 text-sm sm:text-base transition-all duration-300 ${tab.id === "arcade" ? "hidden md:inline-flex" : ""
+                  } ${activeTab === tab.id
                     ? "bg-cyan text-black scale-105"
                     : "bg-transparent text-white border-white/50 hover:border-cyan hover:text-cyan"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -247,7 +287,7 @@ export default function ProfileClient({
             {activeTab === "details" && (
               <HandDrawnCard className="p-4 sm:p-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="hand-drawn-title text-white text-2xl">
+                  <h2 className="hand-drawn-title text-white text-2xl! md:text-3xl!">
                     Student Details
                   </h2>
                 </div>
@@ -255,6 +295,28 @@ export default function ProfileClient({
                 {isEditing ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-white text-sm">Username</label>
+                        <input
+                          type="text"
+                          value={formData.username || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              username: e.target.value,
+                            })
+                          }
+                          className="w-full bg-black/30 border-2 border-white/30 rounded px-3 py-2 text-white focus:border-cyan outline-none"
+                          placeholder="crewmate123"
+                          minLength={3}
+                          maxLength={30}
+                          autoComplete="username"
+                        />
+                        <p className="text-white/50 text-xs">
+                          3-30 characters, letters, numbers, underscores, hyphens
+                        </p>
+                      </div>
+
                       <div className="space-y-2">
                         <label className="text-white text-sm">Full Name</label>
                         <input
@@ -270,6 +332,7 @@ export default function ProfileClient({
                           placeholder="Enter full name"
                         />
                       </div>
+
                       <div className="space-y-2">
                         <label className="text-white text-sm">
                           Phone Number
@@ -335,9 +398,20 @@ export default function ProfileClient({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
                     <div>
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
+                        User Name
+                      </label>
+                      <p className="text-white text-lg wrap-break-word">
+                        {profile.username || (
+                          <span className="text-white/30 italic">Not set</span>
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Full Name
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.fullName || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -347,7 +421,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Phone Number
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.phoneNumber || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -357,7 +431,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         College
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.college || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -367,7 +441,7 @@ export default function ProfileClient({
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
                         Stream
                       </label>
-                      <p className="text-white text-lg break-words">
+                      <p className="text-white text-lg wrap-break-word">
                         {profile.stream || (
                           <span className="text-white/30 italic">Not set</span>
                         )}
@@ -390,6 +464,7 @@ export default function ProfileClient({
                         <button
                           onClick={() => {
                             setFormData({
+                              username: profile.username,
                               fullName: profile.fullName,
                               phoneNumber: profile.phoneNumber,
                               college: profile.college,
@@ -420,28 +495,32 @@ export default function ProfileClient({
             {activeTab === "events" && <EventsTab />}
 
             {activeTab === "arcade" && (
-              <HandDrawnCard className="p-6">
-                <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-2">
-                  Bored?
-                </h2>
-                <p className="text-cyan text-sm mb-4">Welcome to the Arcade!</p>
-                <p className="text-white/70 text-sm mb-4 md:hidden">
-                  This game is only available on laptops/desktops.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setGameOpen(true)}
-                  className="hand-drawn-button w-full py-4 text-lg hidden md:block"
-                >
-                  PLAY GAME
-                </button>
-              </HandDrawnCard>
+              <>
+                <HandDrawnCard className="p-6">
+                  <h2 className="hand-drawn-title text-white text-xl sm:text-2xl mb-2">
+                    Bored?
+                  </h2>
+                  <p className="text-cyan text-sm mb-4">Welcome to the Arcade!</p>
+                  <p className="text-white/70 text-sm mb-4 md:hidden">
+                    This game is only available on laptops/desktops.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setGameOpen(true)}
+                    className="hand-drawn-button w-full py-4 text-lg hidden md:block"
+                  >
+                    PLAY GAME
+                  </button>
+                </HandDrawnCard>
+
+                <LeaderboardCard leaderboard={leaderboard} />
+              </>
             )}
           </div>
 
           <div className="flex justify-center">
             <Link href="/" className="hand-drawn-button px-6 py-2 text-sm">
-              <span className="text-2xl">←</span> <span>Abort / Back</span>
+              <span className="text-2xl">←</span> <span>Back</span>
             </Link>
           </div>
         </div>

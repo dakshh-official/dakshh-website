@@ -125,8 +125,9 @@ export async function PATCH(request: Request) {
     }
 
     if (username !== undefined) {
+      const escaped = username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const existing = await User.findOne({
-        username: new RegExp(`^${username}$`, "i"),
+        username: new RegExp(`^${escaped}$`, "i"),
         _id: { $ne: new mongoose.Types.ObjectId(session.user.id) },
       });
       if (existing) {

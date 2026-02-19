@@ -3,6 +3,7 @@ import generateCode from "@/lib/generateTeamID";
 import Event, { IEventDocument } from "@/lib/models/Events";
 import Registration from "@/lib/models/Registrations";
 import Team from "@/lib/models/Team";
+import User from "@/lib/models/User";
 import connect from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 
@@ -33,11 +34,30 @@ export async function POST(
             );
         }
 
+        if(!event.isActive) {
+            return NextResponse.json({ error: "This event is not accepting registrations right now" }, { status: 400 });
+        }
         if (!event.isTeamEvent) {
             return NextResponse.json({ error: "This event is a Solo Event" }, { status: 400 });
         }
         if (event.isPaidEvent) {
             return NextResponse.json({ error: "The Event is a paid event" }, { status: 400 });
+        }
+
+        const user = await User.findById(session.user.id);
+
+        if (!user.verified) {
+            return NextResponse.json({
+                error: "Verify your account to Register",
+                isVerified: false
+            }, { status: 401 });
+        }
+
+        if (!user.isProfileComplete) {
+            return NextResponse.json({
+                error: "Complete your profile to Register",
+                isProfileComplete: false
+            }, { status: 400 });
         }
 
         const newCode = `DAKSHH-${generateCode()}`;
@@ -46,10 +66,11 @@ export async function POST(
             eventId: event._id,
             teamCode: newCode,
             teamLeader: session.user.id,
+            team: [session.user.id],
         });
 
         let newRegistration;
-        if(newTeam) {
+        if (newTeam) {
             newRegistration = new Registration({
                 eventId: event._id,
                 isInTeam: true,
@@ -66,7 +87,9 @@ export async function POST(
 
         return NextResponse.json({
             message: `Registered in ${event.eventName} Successfully!`,
-            eventId: newRegistration.teamId
+            eventId: newRegistration.teamId,
+            isVerified: true,
+            isProfileComplete: true
         }, { status: 201 });
     } catch (error) {
         console.error("Creating Team Error:", error);

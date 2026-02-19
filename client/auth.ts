@@ -155,8 +155,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.id && token.email) {
         await connect();
         const dbUser = await User.findById(token.id)
-          .select("roles email")
-          .lean() as { roles?: string[]; email: string } | null;
+          .select("roles email username avatar")
+          .lean() as { roles?: string[]; email: string; username?: string; avatar?: number } | null;
 
         if (dbUser?.email) {
           token.roles = await ensureRolesInDb(
@@ -164,6 +164,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             dbUser.email,
             dbUser.roles
           );
+          if (dbUser.username) token.username = dbUser.username;
+          if (dbUser.avatar !== undefined) token.avatar = dbUser.avatar;
         }
       }
       return token;

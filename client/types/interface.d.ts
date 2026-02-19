@@ -38,6 +38,8 @@ export interface IEvent {
   rules: string[];
   clubs: string[];
   isTeamEvent: boolean;
+  isActive: boolean;
+  doc?: string;
   pocs: IPoc[];
   maxMembersPerTeam: number;
   minMembersPerTeam: number;
@@ -158,10 +160,129 @@ export interface Registration {
 export interface Team {
   _id: string;
   eventId: RegiEventProps
-  teamLeader: string;
+  teamLeader:
+  | string
+  | {
+    _id: string;
+    username?: string;
+    fullName?: string;
+  };
   teamCode: string;
-  team: string[];
+  team: (
+    | string
+    | {
+      _id: string;
+      username?: string;
+      fullName?: string;
+    }
+  )[];
+  members?: {
+    _id: string;
+    username?: string;
+    fullName?: string;
+    isLeader: boolean;
+  }[];
+  teamSize?: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
+}
+
+export interface PopulatedTeamUser {
+  _id: mongoose.Types.ObjectId;
+  username?: string;
+  fullName?: string;
+};
+
+export interface RegistrationLean {
+  _id: mongoose.Types.ObjectId;
+  isInTeam?: boolean;
+  teamId?: mongoose.Types.ObjectId;
+  verified?: boolean;
+  createdAt?: Date;
+};
+
+export interface TeamLean {
+  _id: mongoose.Types.ObjectId;
+  teamCode: string;
+  teamLeader?: PopulatedTeamUser;
+  team?: PopulatedTeamUser[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export interface MyTeamResponse {
+  _id: string;
+  teamCode: string;
+  createdAt: Date;
+  updatedAt: Date;
+  members: {
+    _id: string;
+    username: string;
+    fullName: string;
+    isLeader: boolean;
+  }[];
+  teamSize: number;
+};
+
+export interface TeamMember {
+  _id: string;
+  username?: string;
+  fullName?: string;
+  isLeader?: boolean;
+};
+
+export interface TeamDetails {
+  _id: string;
+  teamCode: string;
+  teamSize: number;
+  members: TeamMember[];
+};
+
+export interface EventDetails {
+  _id: string;
+  eventName: string;
+  category: string;
+  date: string;
+  time: string;
+  duration?: string;
+  venue: string;
+  description: string;
+  banner?: string;
+  rules?: string[];
+  clubs?: string[];
+  pocs?: { name: string; mobile: string }[];
+  isTeamEvent: boolean;
+  isActive: boolean;
+  doc?: string;
+  minMembersPerTeam: number;
+  maxMembersPerTeam: number;
+  isPaidEvent: boolean;
+  fees: number;
+  prizePool: string;
+  userRegistration?: {
+    isRegistered: boolean;
+    isInTeam: boolean;
+    verified: boolean;
+  };
+  myTeam?: TeamDetails | null;
+};
+
+export interface ProfileData {
+  username: string;
+  avatar: number | null;
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  college?: string;
+  stream?: string;
+  isProfileComplete?: boolean;
+  qrPayload?: string;
+}
+
+export interface LeaderBoard {
+  username?: string;
+  fullName?: string;
+  amongUsScore: number;
+  avatar?: number;
 }

@@ -38,6 +38,10 @@ html {
   scroll-behavior: smooth;
 }
 
+::-webkit-scrollbar{
+  display: none;
+}
+
 body {
   background: #000000;
   color: #ffffff;
