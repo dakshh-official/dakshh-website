@@ -267,3 +267,22 @@ export interface EventDetails {
   };
   myTeam?: TeamDetails | null;
 };
+
+export interface ProfileData {
+  username: string;
+  avatar: number | null;
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  college?: string;
+  stream?: string;
+  isProfileComplete?: boolean;
+  qrPayload?: string;
+}
+
+export interface LeaderBoard {
+  username?: string;
+  fullName?: string;
+  amongUsScore: number;
+  avatar?: number;
+}
