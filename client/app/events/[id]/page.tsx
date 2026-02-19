@@ -38,6 +38,7 @@ const EventPage = () => {
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState<boolean>(false);
   const [teamCodeInput, setTeamCodeInput] = useState("");
+  const [displayLoading, setDisplayLoading] = useState(true);
 
   const [showRules, setShowRules] = useState(false);
   const [showPoc, setShowPoc] = useState(false);
@@ -97,6 +98,13 @@ const EventPage = () => {
       document.body.classList.add("loader-complete");
       document.body.classList.remove("loader-ready");
       document.body.style.overflow = "";
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setDisplayLoading(false), 800);
+      return () => clearTimeout(timer);
     }
   }, [loading]);
 
@@ -207,7 +215,7 @@ const EventPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || displayLoading) {
     return (
       <div className="min-h-screen w-screen bg-black text-white flex items-center justify-center">
         <Navbar />
@@ -231,7 +239,7 @@ const EventPage = () => {
           src="/kill.gif"
           alt="Loading"
           className="object-contain drop-shadow-2xl w-1/3 bg-none"
-          
+
         />
       </div>
     );
