@@ -330,21 +330,7 @@ export default function ProfileClient({
                           3–30 characters, letters, numbers, underscores, hyphens
                         </p>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-white text-sm">User Name</label>
-                        <input
-                          type="text"
-                          value={formData.username || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              username: e.target.value,
-                            })
-                          }
-                          className="w-full bg-black/30 border-2 border-white/30 rounded px-3 py-2 text-white focus:border-cyan outline-none"
-                          placeholder="Enter user name"
-                        />
-                      </div>
+
                       <div className="space-y-2">
                         <label className="text-white text-sm">Full Name</label>
                         <input
@@ -423,16 +409,6 @@ export default function ProfileClient({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-                    <div>
-                      <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">
-                        User Name
-                      </label>
-                      <p className="text-white text-lg break-words">
-                        {profile.username || (
-                          <span className="text-white/30 italic">Not set</span>
-                        )}
-                      </p>
-                    </div>
 
                     <div className="md:col-span-2">
                       <label className="block text-white/50 text-xs uppercase tracking-wider mb-1">

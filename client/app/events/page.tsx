@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
 import Navbar from "../components/Navbar";
 import { DotOrbit } from "@paper-design/shaders-react";
 import Crewmates from "../components/Crewmates";
 import EventCard from "../components/EventCard";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type PublicEvent = {
   _id: string;
@@ -28,29 +29,65 @@ type PublicEvent = {
   prizePool: string;
 };
 
-async function getEvents(): Promise<PublicEvent[]> {
-  try {
-    const res = await fetch(`/api/events/public`, {
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      return [];
-    }
-
-    const data = await res.json();
-    return data as PublicEvent[];
-  } catch (error) {
-    console.error("Failed to fetch events:", error);
-    return [];
-  }
-}
-
 export default function Events() {
   const [events, setEvents] = useState<PublicEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function getEvents(): Promise<PublicEvent[]> {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/events/public`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        return [];
+      }
+
+      const data = await res.json();
+      return data as PublicEvent[];
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     getEvents().then(setEvents);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-black text-white flex items-center justify-center">
+        <Navbar />
+
+        <div className="fixed inset-0 w-full h-full z-0">
+          <DotOrbit
+            width="100%"
+            height="100%"
+            colors={["#ffffff", "#006aff", "#fff675"]}
+            colorBack="#000000"
+            stepsPerColor={4}
+            size={0.2}
+            sizeRange={0.5}
+            spreading={1}
+            speed={0.5}
+            scale={0.35}
+          />
+        </div>
+
+        <Image
+          src="/among-us-thumbs-up.gif"
+          alt="Loading"
+          className="object-contain drop-shadow-2xl"
+          height={120}
+          width={120}
+        />
+      </div>
+    );
+  }
 
   // Server Component - we render a client component for the interactive parts
   return (
