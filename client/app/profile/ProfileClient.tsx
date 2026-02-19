@@ -61,6 +61,18 @@ export default function ProfileClient({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (qrModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [qrModalOpen]);
+
+  useEffect(() => {
     let cancelled = false;
 
     (async () => {
@@ -212,11 +224,11 @@ export default function ProfileClient({
                   </svg>
                 </button>
               </div>
-              <div className="flex flex-col text-center sm:text-left min-w-0 w-full">
-                <h1 className="hand-drawn-title text-white text-3xl! sm:text-6xl! mb-2 wrap-break-word">
+              <div className="flex flex-col text-center sm:text-center min-w-0 w-full">
+                <h1 className="hand-drawn-title text-white text-2xl! sm:text-5xl! mb-2 wrap-break-word">
                   {profile.username}
                 </h1>
-                <p className="text-cyan text-sm break-all">
+                <p className="text-cyan text-sm sm:text-xl break-all">
                   {profile.email || "No email"}
                 </p>
               </div>

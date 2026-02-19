@@ -34,7 +34,7 @@ const RulesModal = ({ rules = [], onClose }: any) => {
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    <div className="p-6 max-h-[40vh] overflow-y-auto custom-scrollbar">
                         {(!rules || rules.length === 0) ? (
                             <p className="text-gray-400 text-center italic">No specific rules mentioned.</p>
                         ) : (
