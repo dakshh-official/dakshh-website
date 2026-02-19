@@ -348,7 +348,7 @@ const EventPage = () => {
             </div>
 
             <HandDrawnCard className="min-h-[400px] flex flex-col p-6 sm:p-10 relative group">
-              <h2 className="text-2xl font-bold mb-6 text-yellow-400 uppercase tracking-wider">
+              <h2 className="text-2xl! md:text-4xl! font-bold mb-6 text-yellow-400 uppercase tracking-wider">
                 Mission Instructions
               </h2>
 
