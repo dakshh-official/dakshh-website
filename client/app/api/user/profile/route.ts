@@ -61,15 +61,21 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+
+
   try {
     const body = await request.json();
     const parsed = profileUpdateSchema.safeParse(body);
+
+    
 
     if (!parsed.success) {
       const firstError = parsed.error.flatten().fieldErrors;
       const msg = Object.values(firstError).flat().filter(Boolean)[0] as string;
       return NextResponse.json({ error: msg }, { status: 400 });
     }
+
+    console.log(parsed.data);
 
     const { avatar, username, amongUsScore, fullName, phoneNumber, college, stream } = parsed.data;
 
