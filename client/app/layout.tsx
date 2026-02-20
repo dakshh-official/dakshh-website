@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { images } from "@/constants/images";
 // import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 
 const spaceGrotesk = Space_Grotesk({
@@ -15,8 +16,8 @@ export const metadata: Metadata = {
   title: "DAKSHH Tech Fest 2026",
   description: "Annual Techno-Management Fest of HITK",
   icons: {
-    icon: "/Dakshh_Logo.png",
-    apple: "/Dakshh_Logo.png",
+    icon: images.Dakshh_Logo,
+    apple: images.Dakshh_Logo,
   },
   openGraph: {
     title: "DAKSHH Tech Fest 2026",
