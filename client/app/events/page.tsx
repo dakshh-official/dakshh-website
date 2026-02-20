@@ -4,19 +4,22 @@ import Navbar from "../components/Navbar";
 import { DotOrbit } from "@paper-design/shaders-react";
 import Crewmates from "../components/Crewmates";
 import EventCard from "../components/EventCard";
-import { useEffect, useState } from "react";
+import CategoryDropdown, {
+  type Category,
+} from "../components/Events/CategoryDropdown";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
 type PublicEvent = {
   _id: string;
   eventName: string;
   category:
-  | "Software"
-  | "Hardware"
-  | "Entrepreneurship"
-  | "Gaming"
-  | "Quiz"
-  | "Design and Prototyping";
+    | "Software"
+    | "Hardware"
+    | "Entrepreneurship"
+    | "Gaming"
+    | "Quiz"
+    | "Design and Prototyping";
   description: string;
   banner: string;
   clubs: string[];
@@ -33,6 +36,23 @@ export default function Events() {
   const [events, setEvents] = useState<PublicEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayLoading, setDisplayLoading] = useState(true);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category>("All");
+
+  const filteredEvents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return events.filter((ev) => {
+      const matchesQuery =
+        query.length === 0 ? true : ev.eventName.toLowerCase().includes(query);
+
+      const matchesCategory =
+        selectedCategory === "All" ? true : ev.category === selectedCategory;
+
+      return matchesQuery && matchesCategory;
+    });
+  }, [events, searchQuery, selectedCategory]);
 
   async function getEvents(): Promise<PublicEvent[]> {
     setLoading(true);
@@ -127,17 +147,40 @@ export default function Events() {
             Browse events and filter by category or search by name.
           </p>
 
-          {/* Note: For full interactivity (search/filter), a client component would be needed.
-              For now, we show all events. The filter functionality can be added with a 
-              client component wrapper if needed. */}
+          <div className="mb-6 flex flex-col sm:flex-row gap-4 sm:items-center">
+            <div className="w-full sm:w-64">
+              <CategoryDropdown
+                value={selectedCategory}
+                onChange={setSelectedCategory}
+              />
+            </div>
+
+            <div className="w-full sm:flex-1">
+              <label htmlFor="event-search" className="sr-only">
+                Search events
+              </label>
+              <input
+                id="event-search"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events..."
+                className="hand-drawn-input w-full"
+              />
+            </div>
+          </div>
 
           {events.length === 0 ? (
             <div className="py-20 text-center text-white/70">
               No events available at the moment. Check back later.
             </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="py-20 text-center text-white/70">
+              No events match your filters.
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((ev) => (
+              {filteredEvents.map((ev) => (
                 <EventCard
                   key={String(ev._id)}
                   _id={ev._id}
