@@ -43,6 +43,7 @@ export interface IEvent {
   pocs: IPoc[];
   maxMembersPerTeam: number;
   minMembersPerTeam: number;
+  teamLimit?: number;
   prizePool: number;
   isPaidEvent: boolean;
   isFoodProvided: boolean;
@@ -100,7 +101,7 @@ export interface EventByIdProps {
   banner?: string | null;
   rules: string[];
   clubs: string[];
-  pocs: IPpoc[];
+  pocs: IPoc[];
   date: string;
   time: string;
   venue: string;
@@ -128,6 +129,7 @@ export interface IRegistration {
 export interface ITeam {
   eventId: Types.ObjectId;
   teamCode: string;
+  teamCode?: string;
   teamLeader: Types.ObjectId;
   team: Types.ObjectId[];
   createdAt: Date;

@@ -86,12 +86,10 @@ export async function POST(
         });
 
         targetTeam.team.push(user._id);
-        event.registrations.push(newRegistration._id);
 
         await Promise.all([
             newRegistration.save(),
-            targetTeam.save(),
-            event.save()
+            targetTeam.save()
         ]);
 
         return NextResponse.json({
