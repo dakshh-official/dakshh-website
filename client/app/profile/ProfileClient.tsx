@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -50,7 +50,13 @@ export default function ProfileClient({
   const [gameOpen, setGameOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderBoard[]>([]);
+  const hasTriggeredAutoLogout = useRef(false);
   const { update: updateSession } = useSession();
+  const triggerAutoLogout = () => {
+    if (hasTriggeredAutoLogout.current) return;
+    hasTriggeredAutoLogout.current = true;
+    void signOut({ callbackUrl: "/auth" });
+  };
 
   useEffect(() => {
     if (qrModalOpen) {
@@ -89,7 +95,17 @@ export default function ProfileClient({
 
     (async () => {
       try {
+        const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
+        if (sessionRes.status === 404) {
+          triggerAutoLogout();
+          return;
+        }
+
         const res = await fetch("/api/user/profile");
+        if (res.status === 404) {
+          triggerAutoLogout();
+          return;
+        }
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
@@ -132,6 +148,11 @@ export default function ProfileClient({
     });
     setLoading(false);
 
+    if (res.status === 404) {
+      triggerAutoLogout();
+      return;
+    }
+
     if (res.ok) {
       const data = await res.json();
       setProfile((prev) => ({
@@ -154,6 +175,10 @@ export default function ProfileClient({
       body: JSON.stringify({ avatar }),
     });
     setLoading(false);
+    if (res.status === 404) {
+      triggerAutoLogout();
+      return;
+    }
     if (res.ok) {
       const data = await res.json();
       setProfile((p) => ({ ...p, avatar: data.avatar ?? avatar }));

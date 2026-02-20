@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { images } from "@/constants/images";
 
@@ -15,6 +15,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileAvatar, setProfileAvatar] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const hasTriggeredAutoLogout = useRef(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -79,10 +80,25 @@ export default function Navbar() {
 
     let cancelled = false;
     const fallbackAvatar = session?.user?.avatar ?? 1;
+    const triggerAutoLogout = () => {
+      if (cancelled || hasTriggeredAutoLogout.current) return;
+      hasTriggeredAutoLogout.current = true;
+      void signOut({ callbackUrl: "/auth" });
+    };
 
     const fetchProfileAvatar = async () => {
       try {
+        const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
+        if (sessionRes.status === 404) {
+          triggerAutoLogout();
+          return;
+        }
+
         const res = await fetch("/api/user/profile", { cache: "no-store" });
+        if (res.status === 404) {
+          triggerAutoLogout();
+          return;
+        }
         if (!res.ok) return;
         const data = (await res.json()) as { avatar?: number | null };
         if (!cancelled) {
