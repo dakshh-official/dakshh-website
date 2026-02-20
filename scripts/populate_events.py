@@ -75,9 +75,10 @@ def parse_and_upload_events(file_path):
 
     for _, row in df.iterrows():
 
-        # ---- Detect new event ----
+        # ---- Detect New Event Row ----
         if pd.notna(row.get("Event Name")):
 
+            # Save previous event
             if current_event:
                 events_to_upsert.append(current_event)
 
@@ -85,6 +86,7 @@ def parse_and_upload_events(file_path):
 
             if category not in VALID_CATEGORIES:
                 print(f"⚠ Invalid category '{category}' — Skipping")
+                current_event = None
                 continue
 
             min_members = safe_int(row.get("Minimum members per team"), 1)
@@ -92,7 +94,7 @@ def parse_and_upload_events(file_path):
             fees = safe_float(row.get("Fees"), 0)
 
             prize_pool = str(row.get("Prize Pool", "")).strip()
-            prize_pool = prize_pool if prize_pool else "TBA"
+            prize_pool = prize_pool if prize_pool else "TBD"
 
             rules_list = []
             if pd.notna(row.get("Rules")):
@@ -116,25 +118,18 @@ def parse_and_upload_events(file_path):
                 "description": str(row.get("Description", "")).strip(),
                 "banner": resolve_banner(row.get("Banner")),
                 "doc": str(row.get("Rulebook Link", "")).strip(),
-
                 "rules": rules_list,
                 "clubs": clubs_list,
-
                 "isTeamEvent": max_members > 1,
                 "minMembersPerTeam": min_members,
                 "maxMembersPerTeam": max_members,
-
                 "isPaidEvent": fees > 0,
                 "fees": fees,
                 "prizePool": prize_pool,
-
                 "isFoodProvided": False,
                 "maxFoodServingsPerParticipant": 1,
-
-                "isActive": False,   # REQUIRED by schema
-
-                "pocs": [],
-                "registrations": []
+                # ⚠ DO NOT include registrations
+                # ⚠ DO NOT include isActive (preserve DB value)
             }
 
         # ---- Add POCs ----
@@ -143,34 +138,50 @@ def parse_and_upload_events(file_path):
             mobile = str(row.get("POC mobile", "")).strip()
 
             if name and mobile:
+                if "pocs" not in current_event:
+                    current_event["pocs"] = []
+
                 current_event["pocs"].append({
                     "name": name,
                     "mobile": mobile
                 })
 
+    # Append last event
     if current_event:
         events_to_upsert.append(current_event)
 
-    # ---- Upload ----
     if events_to_upsert:
         print(f"Uploading {len(events_to_upsert)} events...")
 
-        operations = [
-            UpdateOne(
-                {"eventName": e["eventName"]},
-                {"$set": e},
-                upsert=True
+        operations = []
+
+        for e in events_to_upsert:
+
+            # Copy event data safely
+            event_data = e.copy()
+
+            operations.append(
+                UpdateOne(
+                    {"eventName": e["eventName"]},
+                    {
+                        "$set": event_data,  # update only Excel fields
+                        "$setOnInsert": {
+                            "registrations": [],
+                            "isActive": False  # only for new events
+                        }
+                    },
+                    upsert=True
+                )
             )
-            for e in events_to_upsert
-        ]
 
         result = collection.bulk_write(operations)
 
         print("Upload complete!")
         print(f"Inserted: {result.upserted_count}")
         print(f"Modified: {result.modified_count}")
+
     else:
-        print("No events found.")
+        print("No valid events found.")
 
     client.close()
 

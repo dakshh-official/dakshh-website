@@ -8,6 +8,7 @@ import { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import HandDrawnCard from "@/app/components/HandDrawnCard";
 import DialCarousel from "@/app/components/Events/DialCarousel";
+import BackVentButton from "@/app/components/Events/BackVentButton";
 
 import RulesModal from "@/app/components/Events/modals/RulesModal";
 import PocModal from "@/app/components/Events/modals/PocModal";
@@ -239,7 +240,6 @@ const EventPage = () => {
           src="/kill.gif"
           alt="Loading"
           className="object-contain drop-shadow-2xl w-1/3 bg-none"
-
         />
       </div>
     );
@@ -288,12 +288,7 @@ const EventPage = () => {
       <main className="relative z-20 pt-24 sm:pb-12 pb-20 px-4 w-full h-full flex flex-col items-center">
         {/* TOP ROW: Back - Header - User Profile/Date */}
         <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-          <button
-            onClick={() => router.back()}
-            className="md:hidden hand-drawn-button px-4 py-2 text-sm flex items-center gap-2"
-          >
-            <span>←</span> Back
-          </button>
+          <BackVentButton />
 
           {/* Event Logo + Title */}
           <div className="flex-1 lg:pl-32 mt-10 flex justify-center md:justify-start">
@@ -513,13 +508,6 @@ const EventPage = () => {
                 )}
               </div>
             </HandDrawnCard>
-
-            <button
-              onClick={() => router.back()}
-              className="hidden md:flex hand-drawn-button w-max px-6 py-3 items-center gap-3 self-start hover:-translate-x-2 transition-transform"
-            >
-              <span className="text-2xl">←</span> <span>Back</span>
-            </button>
           </div>
 
           {/* RIGHT COLUMN: Actions & Rules */}
@@ -590,7 +578,9 @@ const EventPage = () => {
               >
                 <HandDrawnCard className="p-6 transition-transform group-hover:-translate-y-1 bg-amber-900/20 group-hover:bg-amber-900/40 border-amber-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold uppercase">Download Mission Protocol</span>
+                    <span className="text-xl font-bold uppercase">
+                      Download Mission Protocol
+                    </span>
                     <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
                       <FileText />
                     </div>
@@ -598,7 +588,6 @@ const EventPage = () => {
                 </HandDrawnCard>
               </a>
             )}
-
           </div>
         </div>
       </main>

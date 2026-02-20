@@ -12,7 +12,7 @@ const ReadMoreModal = ({ text, onClose }: any) => {
 
                 <button
                     onClick={onClose}
-                    className="mt-6 w-full py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white"
+                    className="hand-drawn-button mt-6 w-full py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white"
                 >
                     Close
                 </button>

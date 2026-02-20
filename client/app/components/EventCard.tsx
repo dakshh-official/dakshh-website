@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import HandDrawnCard from "./HandDrawnCard";
 import { PublicEventProps } from "@/types/interface";
+import ReadMoreModal from "./Events/modals/ReadMoreModal";
 
 type LegacyProps = {
   title?: string;
@@ -33,6 +34,20 @@ export default function EventCard(props: Props) {
     featured = false,
     clubs,
   } = props;
+
+  const [showDesc, setShowDesc] = useState(false);
+
+  const fullDescription = typeof description === "string" ? description : "";
+  const { previewDescription, isTruncated } = useMemo(() => {
+    const MAX_CHARS = 200;
+    const needsTruncate = fullDescription.length > MAX_CHARS;
+    return {
+      isTruncated: needsTruncate,
+      previewDescription: needsTruncate
+        ? `${fullDescription.slice(0, MAX_CHARS).trimEnd()}…`
+        : fullDescription,
+    };
+  }, [fullDescription]);
 
   const displayTitle = eventName ?? title ?? "Untitled Event";
   const displayCategory = category ?? "General";
@@ -102,9 +117,21 @@ export default function EventCard(props: Props) {
       </h3>
 
       {/* Description */}
-      <p className="text-white/70 text-sm sm:text-base text-left mb-4">
-        {description}
-      </p>
+      <div className="mb-4">
+        <p className="text-white/70 text-sm sm:text-base text-left">
+          {previewDescription}
+        </p>
+
+        {isTruncated && (
+          <button
+            type="button"
+            onClick={() => setShowDesc(true)}
+            className="mt-2 text-cyan text-xs uppercase tracking-wider hover:underline"
+          >
+            Read more
+          </button>
+        )}
+      </div>
 
       {/* Event Details Section - Vertical Stack */}
       <div className="flex flex-col gap-2 mb-4">
@@ -251,5 +278,15 @@ export default function EventCard(props: Props) {
     </HandDrawnCard>
   );
 
-  return <div className="flex flex-col h-full">{card}</div>;
+  return (
+    <div className="flex flex-col h-full">
+      {card}
+      {showDesc && (
+        <ReadMoreModal
+          text={fullDescription}
+          onClose={() => setShowDesc(false)}
+        />
+      )}
+    </div>
+  );
 }

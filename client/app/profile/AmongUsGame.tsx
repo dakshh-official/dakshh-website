@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./AmongUsGame.module.css";
+import { signOut } from "next-auth/react";
 
 // --- Asset Assembler Helper ---
 // Sprite Templates from the original CSS (extracted for dynamic coloring)
@@ -113,7 +114,13 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
     const [renderTexts, setRenderTexts] = useState<FloatingText[]>([]);
     const [renderImposters, setRenderImposters] = useState<Imposter[]>([]);
     const [activeEffectHud, setActiveEffectHud] = useState<{ effect: ActiveEffect; endTime: number } | null>(null);
+    const hasTriggeredAutoLogout = useRef(false);
     const [, setHudTick] = useState(0);
+    const triggerAutoLogout = () => {
+        if (hasTriggeredAutoLogout.current) return;
+        hasTriggeredAutoLogout.current = true;
+        void signOut({ callbackUrl: "/auth" });
+    };
 
     useEffect(() => {
         if (!activeEffectHud) return;
@@ -595,8 +602,24 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
 
     // Fetch initial score
     useEffect(() => {
-        fetch("/api/user/profile")
-            .then(res => res.json())
+        fetch("/api/auth/session", { cache: "no-store" })
+            .then(sessionRes => {
+                if (sessionRes.status === 404) {
+                    triggerAutoLogout();
+                    throw new Error("Session not found");
+                }
+                return fetch("/api/user/profile");
+            })
+            .then(res => {
+                if (res.status === 404) {
+                    triggerAutoLogout();
+                    throw new Error("Profile not found");
+                }
+                if (!res.ok) {
+                    throw new Error("Failed to fetch profile");
+                }
+                return res.json();
+            })
             .then(data => {
                 if (data.amongUsScore !== undefined) {
                     setScore(data.amongUsScore);
@@ -622,7 +645,13 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amongUsScore: finalScore }),
                 keepalive: true,
-            }).catch(err => console.error("Failed to save score", err));
+            })
+                .then((res) => {
+                    if (res.status === 404) {
+                        triggerAutoLogout();
+                    }
+                })
+                .catch(err => console.error("Failed to save score", err));
         };
     }, []);
 
@@ -635,7 +664,13 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amongUsScore: score })
-            }).catch(err => console.error("Failed to auto-save score", err));
+            })
+                .then((res) => {
+                    if (res.status === 404) {
+                        triggerAutoLogout();
+                    }
+                })
+                .catch(err => console.error("Failed to auto-save score", err));
         }, 5000);
 
         return () => clearTimeout(timeout);
