@@ -1,3 +1,4 @@
+import { images } from "@/constants/images";
 import * as React from "react";
 
 interface OtpEmailTemplateProps {
@@ -8,9 +9,9 @@ export function OtpEmailTemplate({ otp }: OtpEmailTemplateProps) {
   const siteUrl = (
     process.env.SITE_URL ?? "https://www.dakshh-hitk.com/"
   ).replace(/\/+$/, "");
-  const dakshhLogo = `${siteUrl}/Dakshh_Logo.png`;
-  const iicLogo = `${siteUrl}/IIC.png`;
-  const heritageLogo = `${siteUrl}/Heritage.png`;
+  const dakshhLogo = images.Dakshh_Logo;
+  const iicLogo = images.IIC;
+  const heritageLogo = images.Heritage;
   const shhhLogo = `${siteUrl}/SHHH.png`;
 
   return (

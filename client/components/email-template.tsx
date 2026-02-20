@@ -1,3 +1,4 @@
+import { images } from "@/constants/images";
 import * as React from "react";
 
 interface EmailTemplateProps {
@@ -20,9 +21,9 @@ export function EmailTemplate({ email }: EmailTemplateProps) {
     process.env.SITE_URL ?? "https://www.dakshh-hitk.com/"
   ).replace(/\/+$/, "");
   const primaryCrewmate = `${siteUrl}/${avatarIndex}.png`;
-  const dakshhLogo = `${siteUrl}/Dakshh_Logo.png`;
-  const iicLogo = `${siteUrl}/IIC.png`;
-  const heritageLogo = `${siteUrl}/Heritage.png`;
+  const dakshhLogo = images.Dakshh_Logo;
+  const iicLogo = images.IIC;
+  const heritageLogo = images.Heritage;
 
   return (
     <div

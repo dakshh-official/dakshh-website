@@ -21,6 +21,7 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mobileScrollRef = useRef<HTMLDivElement>(null);
 	const [isHovered, setIsHovered] = useState(false);
+	const [hoveredDialId, setHoveredDialId] = useState<string | null>(null);
 
 	// Constants
 	const ITEM_SIZE = 60;
@@ -93,13 +94,13 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
 		<>
 			{/* Dark blur overlay on hover */}
 			<div
-				className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-500 pointer-events-none hidden sm:block ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+				className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-none hidden sm:block ${isHovered ? 'opacity-100' : 'opacity-0'}`}
 			/>
 
 			{/* ===== DESKTOP: Dial Carousel (hidden on small screens) ===== */}
 			<div
 				ref={containerRef}
-				className="fixed -left-40 top-[75%] -translate-y-1/2 w-[320px] z-50 hidden lg:flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-500 ease-out"
+				className="fixed -left-40 top-[75%] -translate-y-1/2 w-[320px] z-50 hidden lg:flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-300 ease-out"
 				style={{
 					height: '320px',
 					transform: isHovered
@@ -125,6 +126,8 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
 					{events.map((event, index) => {
 						const angle = index * ANGLE_PER_ITEM;
 						const isActive = index === normalizedActiveIndex;
+						const isHoveredDial = hoveredDialId === event._id;
+						const showLabelOnLogo = isActive || isHoveredDial;
 
 						return (
 							<motion.button
@@ -153,29 +156,29 @@ const DialCarousel = ({ events, activeId }: DialCarouselProps) => {
 								animate={{ scale: isActive ? 1.25 : 1 }}
 								whileHover={{ scale: isActive ? 1.35 : 1.15 }}
 								whileTap={{ scale: 0.95 }}
+								onMouseEnter={() => setHoveredDialId(event._id)}
+								onMouseLeave={() => setHoveredDialId(prev => (prev === event._id ? null : prev))}
 							>
-								{isActive && (
-									<div
-										className="absolute bottom-[calc(100%+10px)] left-1/2 pointer-events-none"
-										style={{ transform: `translateX(-50%) rotate(${-angle - targetRotation}deg)` }}
-									>
-										<span className="text-[8px] font-bold text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full border border-white/30 shadow-lg block max-w-25 text-center truncate whitespace-nowrap">
-											{event.eventName}
-										</span>
-									</div>
-								)}
-								
 								<div
-									className="w-full h-full rounded-full overflow-hidden"
+									className="w-full h-full rounded-full overflow-hidden relative"
 									style={{ transform: `rotate(${-angle - targetRotation}deg)` }}
 								>
 									{event.banner ? (
-										<img
-											src={event.banner}
-											alt={event.eventName}
-											className="w-full h-full object-cover"
-											draggable={false}
-										/>
+										<>
+											<img
+												src={event.banner}
+												alt={event.eventName}
+												className={`w-full h-full object-cover ${showLabelOnLogo ? 'brightness-50' : ''}`}
+												draggable={false}
+											/>
+											{showLabelOnLogo && (
+												<div className="absolute inset-0 flex items-center justify-center px-1 text-center">
+													<span className="line-clamp-2 text-[9px] font-bold text-white leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+														{event.eventName}
+													</span>
+												</div>
+											)}
+										</>
 									) : (
 										<div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-center p-1 leading-tight">
 											<span className="line-clamp-2">{event.eventName}</span>
