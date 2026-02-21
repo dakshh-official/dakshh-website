@@ -43,6 +43,7 @@ export interface IEvent {
   pocs: IPoc[];
   maxMembersPerTeam: number;
   minMembersPerTeam: number;
+  teamLimit?: number;
   prizePool: number;
   isPaidEvent: boolean;
   isFoodProvided: boolean;
@@ -100,7 +101,7 @@ export interface EventByIdProps {
   banner?: string | null;
   rules: string[];
   clubs: string[];
-  pocs: IPpoc[];
+  pocs: IPoc[];
   date: string;
   time: string;
   venue: string;
@@ -128,6 +129,7 @@ export interface IRegistration {
 export interface ITeam {
   eventId: Types.ObjectId;
   teamCode: string;
+  teamCode?: string;
   teamLeader: Types.ObjectId;
   team: Types.ObjectId[];
   createdAt: Date;
@@ -168,6 +170,7 @@ export interface Team {
     fullName?: string;
   };
   teamCode: string;
+  teamName?: string;
   team: (
     | string
     | {
@@ -205,6 +208,7 @@ export interface RegistrationLean {
 export interface TeamLean {
   _id: mongoose.Types.ObjectId;
   teamCode: string;
+  teamName?: string;
   teamLeader?: PopulatedTeamUser;
   team?: PopulatedTeamUser[];
   createdAt: Date;
@@ -214,6 +218,7 @@ export interface TeamLean {
 export interface MyTeamResponse {
   _id: string;
   teamCode: string;
+  teamName?: string
   createdAt: Date;
   updatedAt: Date;
   members: {
@@ -235,6 +240,7 @@ export interface TeamMember {
 export interface TeamDetails {
   _id: string;
   teamCode: string;
+  teamName?: string;
   teamSize: number;
   members: TeamMember[];
 };

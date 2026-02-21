@@ -43,7 +43,7 @@ export async function GET(
     let myTeam: MyTeamResponse | null = null;
     if (registration?.teamId) {
       const rawTeamDoc = await Team.findById(registration.teamId)
-        .select("_id teamCode teamLeader team createdAt updatedAt")
+        .select("_id teamCode teamName teamLeader team createdAt updatedAt")
         .populate("teamLeader", "username fullName")
         .populate("team", "username fullName")
         .lean();
@@ -67,6 +67,7 @@ export async function GET(
         myTeam = {
           _id: String(rawTeam._id),
           teamCode: rawTeam.teamCode,
+          teamName: rawTeam.teamName,
           createdAt: rawTeam.createdAt,
           updatedAt: rawTeam.updatedAt,
           members: Array.from(normalizedMembersMap.values()).map((member) => ({
