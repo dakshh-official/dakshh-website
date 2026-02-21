@@ -40,6 +40,21 @@ export default function Events() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category>("All");
 
+  useEffect(() => {
+    if (!loading && !displayLoading && events.length > 0) {
+      const savedPosition = sessionStorage.getItem("eventsScrollPosition");
+
+      if (savedPosition) {
+        window.scrollTo({
+          top: parseInt(savedPosition),
+          behavior: "auto",
+        });
+
+        sessionStorage.removeItem("eventsScrollPosition");
+      }
+    }
+  }, [loading, displayLoading, events]);
+
   const filteredEvents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
