@@ -17,6 +17,9 @@ const teamSchema = new Schema(
             unique: true,
             required: true
         },
+        teamName: {
+            type: String,
+        },
         teamLeader: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
