@@ -170,6 +170,7 @@ export interface Team {
     fullName?: string;
   };
   teamCode: string;
+  teamName?: string;
   team: (
     | string
     | {
@@ -207,6 +208,7 @@ export interface RegistrationLean {
 export interface TeamLean {
   _id: mongoose.Types.ObjectId;
   teamCode: string;
+  teamName?: string;
   teamLeader?: PopulatedTeamUser;
   team?: PopulatedTeamUser[];
   createdAt: Date;
@@ -216,6 +218,7 @@ export interface TeamLean {
 export interface MyTeamResponse {
   _id: string;
   teamCode: string;
+  teamName?: string
   createdAt: Date;
   updatedAt: Date;
   members: {
@@ -237,6 +240,7 @@ export interface TeamMember {
 export interface TeamDetails {
   _id: string;
   teamCode: string;
+  teamName?: string;
   teamSize: number;
   members: TeamMember[];
 };

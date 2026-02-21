@@ -14,6 +14,7 @@ import RulesModal from "@/app/components/Events/modals/RulesModal";
 import PocModal from "@/app/components/Events/modals/PocModal";
 import { MessageSquare, ScrollText, FileText } from "lucide-react";
 import { EventDetails } from "@/types/interface";
+import CreateTeamModal from "@/app/components/Events/modals/CreateTeamModal";
 
 const EventPage = () => {
   const params = useParams();
@@ -43,6 +44,7 @@ const EventPage = () => {
 
   const [showRules, setShowRules] = useState(false);
   const [showPoc, setShowPoc] = useState(false);
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
 
   const fetchData = async () => {
     if (!id) {
@@ -166,9 +168,9 @@ const EventPage = () => {
     }
   };
 
-  const createTeam = async () => {
+  const createTeam = async (teamName: string) => {
     if (!id || !event) return;
-
+    setShowCreateTeam(false);
     setRegistering(true);
     let redirecting = false;
 
@@ -176,6 +178,9 @@ const EventPage = () => {
       const registration = await fetch(`/api/registration/team/create/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamName
+        }),
       });
       const response = await handleRegistrationResponse(registration);
       redirecting = response.redirecting;
@@ -426,6 +431,12 @@ const EventPage = () => {
                           members
                         </p>
                       </div>
+
+                      <p className="text-xs text-blue-100/80">Team Name</p>
+                      <p className="font-mono text-white break-all">
+                        {event.myTeam.teamName}
+                      </p>
+
                       <p className="text-xs text-blue-100/80">Team Code</p>
                       <p className="font-mono text-white break-all">
                         {event.myTeam.teamCode}
@@ -475,7 +486,7 @@ const EventPage = () => {
                       <button
                         className="hand-drawn-button text-xl px-12 py-4 bg-red-600 hover:bg-red-700 w-full"
                         disabled={loading || registering}
-                        onClick={createTeam}
+                        onClick={() => setShowCreateTeam(true)}
                       >
                         {registering ? (
                           <div className="w-6 h-6 mx-10 border-4 border-red-100 border-t-transparent rounded-full animate-spin" />
@@ -599,6 +610,14 @@ const EventPage = () => {
 
       {showPoc && (
         <PocModal pocs={event.pocs} onClose={() => setShowPoc(false)} />
+      )}
+
+      {showCreateTeam && (
+        <CreateTeamModal
+          onClose={() => setShowCreateTeam(false)}
+          onConfirm={createTeam}
+          registering={registering}
+        />
       )}
     </div>
   );
