@@ -3,6 +3,7 @@ import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { images } from "@/constants/images";
+import { Analytics } from "@vercel/analytics/next";
 // import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 
 const spaceGrotesk = Space_Grotesk({
@@ -73,6 +74,7 @@ export default function RootLayout({
           </defs>
         </svg>
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
