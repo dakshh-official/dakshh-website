@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { images } from "@/constants/images";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 // import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 
 const spaceGrotesk = Space_Grotesk({
@@ -75,6 +76,7 @@ export default function RootLayout({
         </svg>
         <Providers>{children}</Providers>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
