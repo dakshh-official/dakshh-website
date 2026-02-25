@@ -45,6 +45,7 @@ const EventPage = () => {
   const [showRules, setShowRules] = useState(false);
   const [showPoc, setShowPoc] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [completingPayment, setCompletingPayment] = useState(false);
 
   const fetchData = async () => {
     if (!id) {
@@ -206,7 +207,12 @@ const EventPage = () => {
     let redirecting = false;
 
     try {
-      const registration = await fetch(`/api/registration/team/join/${id}`, {
+      // Use paid endpoint for paid events, regular endpoint for free events
+      const endpoint = event.isPaidEvent
+        ? `/api/registration/team/paid/join/${id}`
+        : `/api/registration/team/join/${id}`;
+
+      const registration = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamCode: teamCodeInput.trim().toUpperCase() }),
@@ -221,6 +227,39 @@ const EventPage = () => {
       toast.error((error as Error)?.message || "Failed to join team");
     } finally {
       if (!redirecting) setRegistering(false);
+    }
+  };
+
+  const completePayment = async () => {
+    if (!id || !event?.myTeam?._id) return;
+
+    setCompletingPayment(true);
+
+    try {
+      const response = await fetch(
+        `/api/registration/team/complete-payment/${event.myTeam._id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Failed to complete payment");
+        return;
+      }
+
+      // Open payment URL in new tab
+      if (data.paymentUrl) {
+        window.open(data.paymentUrl, "_blank");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error((error as Error)?.message || "Failed to complete payment");
+    } finally {
+      setCompletingPayment(false);
     }
   };
 
@@ -463,6 +502,26 @@ const EventPage = () => {
                           );
                         })}
                       </div>
+
+                      {/* Complete Payment Button - Only for team leaders on paid events with pending/failed payment */}
+                      {event.isPaidEvent &&
+                        event.myTeam.isTeamLeader &&
+                        event.myTeam.paymentStatus !== "completed" && (
+                          <button
+                            className="hand-drawn-button w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2"
+                            onClick={completePayment}
+                            disabled={completingPayment}
+                          >
+                            {completingPayment ? (
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <span>💳</span>
+                                <span>Complete Payment</span>
+                              </>
+                            )}
+                          </button>
+                        )}
                     </div>
                   ) : (
                     <div className="space-y-3">
