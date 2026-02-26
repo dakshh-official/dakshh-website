@@ -239,12 +239,10 @@ function SeminarModal({
         </div>
 
         {!seminar.isPast ? (
-          <button className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-black font-bold rounded-lg transition">
-            Register Now
-          </button>
+          null
         ) : (
           <div className="text-center text-red-500 font-bold text-lg">
-            Registration Closed
+            Event Ended
           </div>
         )}
       </HandCard>
