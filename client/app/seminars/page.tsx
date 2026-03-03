@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { Calendar, MapPin, Video, Users, Quote } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { DotOrbit } from "@paper-design/shaders-react";
 import Crewmates from "../components/Crewmates";
+import axios from "axios";
 
 interface HandCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ function HandCard({ children, className = "", ...props }: HandCardProps) {
 }
 
 interface SeminarData {
-  id: string;
+  _id: string;
   title: string;
   speaker: string;
   speakerImage: string;
@@ -31,53 +32,10 @@ interface SeminarData {
   dateTime: string;
   mode: "online" | "offline";
   venue: string;
-  isPast: boolean;
+  isActive?: boolean;
+  isRegisterationNeeded?: boolean;
+  club?: string;
 }
-
-const seminars: SeminarData[] = [
-  {
-    id: "1",
-    title: "Quantum Computing: The Next Frontier",
-    speaker: "Dr. Ananya Bose",
-    speakerImage: "/peeking.png",
-    speakerBio:
-      "Dr. Ananya Bose is a leading researcher in quantum algorithms and computational physics with over 12 years of academic and industry experience.",
-    description:
-      "Explore the fascinating world of quantum computing and its potential to revolutionize technology.",
-    speakerNote: "Bring your curiosity and questions about the quantum realm!",
-    dateTime: "2026-03-15T18:00:00",
-    mode: "online",
-    venue: "Zoom Webinar",
-    isPast: false,
-  },
-  {
-    id: "2",
-    title: "AI Ethics in Modern Society",
-    speaker: "Prof. Sisir Kumar Das",
-    speakerImage: "/peeking2.png",
-    speakerBio:
-      "Professor Sisir Kumar Das specializes in AI governance, ethics, and policy frameworks for responsible machine learning systems.",
-    description:
-      "A deep dive into the ethical implications of artificial intelligence and responsible AI development.",
-    dateTime: "2026-03-22T19:00:00",
-    mode: "offline",
-    venue: "SV Auditorium, CB Building",
-    isPast: false,
-  },
-  {
-    id: "3",
-    title: "Blockchain and Cryptocurrency Fundamentals",
-    speaker: "Ms. Riya Sen",
-    speakerImage: "/peeking.png",
-    speakerBio:
-      "Riya Sen is a blockchain consultant helping startups build secure decentralized applications.",
-    description: "Understanding blockchain technology and crypto fundamentals.",
-    dateTime: "2026-02-10T18:00:00",
-    mode: "offline",
-    venue: "ICT, Room 302",
-    isPast: true,
-  },
-];
 
 function SeminarCard({
   seminar,
@@ -86,16 +44,18 @@ function SeminarCard({
   seminar: SeminarData;
   onClick: () => void;
 }) {
-  const date = new Date(seminar.dateTime);
+  const now = new Date();
+  const seminarDate = new Date(seminar.dateTime);
+  const isPast = seminarDate < now;
 
-  const statusStyles = seminar.isPast
+  const statusStyles = isPast
     ? "border-slate-500 shadow-[4px_4px_0px_0px_rgba(100,116,139,1)] opacity-80"
     : "border-cyan-400 shadow-[6px_6px_0px_0px_rgba(34,211,238,1)] hover:-translate-y-1 transition-transform";
 
   return (
     <HandCard
       onClick={onClick}
-      className={`relative cursor-pointer flex flex-col justify-around items-center p-6 bg-slate-900 border-2 rounded-xl overflow-hidden ${statusStyles}`}
+      className={`relative cursor-pointer flex flex-col justify-between items-center p-6 bg-slate-900 border-2 rounded-xl overflow-hidden ${statusStyles}`}
     >
       <h3 className="text-2xl font-black text-white mb-4 border-b border-slate-700 pb-3">
         {seminar.title}
@@ -119,15 +79,24 @@ function SeminarCard({
         </div>
       )}
 
+      {seminar.club && (
+        <span className="text-sm text-slate-200 mb-2">
+          Organized by{" "}
+          <span className="text-red-400 font-medium uppercase tracking-wider">
+            {seminar.club}
+          </span>
+        </span>
+      )}
+
       <div className="pt-4 w-full flex flex-col md:flex-row justify-between items-center border-t border-slate-800 text-sm text-slate-400">
         <div className="flex items-center gap-3">
           <Calendar size={16} />
-          {date.toLocaleDateString("en-US", {
+          {seminarDate.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           })}{" "}
           —{" "}
-          {date.toLocaleTimeString([], {
+          {seminarDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           })}
@@ -145,7 +114,19 @@ function SeminarCard({
         </div>
       </div>
 
-      {seminar.isPast && (
+      {seminar.isActive && (
+        <div className="flex items-center">
+          <span className="absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75 animate-ping"></span>
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
+          <span className="ml-2 text-green-400 font-bold">Active</span>
+        </div>
+      )}
+
+      <div className="absolute top-0 left-0 border bg-black/60 backdrop-blur-2xl w-full h-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white font-bold text-lg uppercase tracking-wider">
+        Click for details
+      </div>
+
+      {isPast && (
         <div className="absolute top-8 right-6 rotate-[-14deg] border-[3px] border-red-700 px-6 py-2 text-3xl font-black uppercase tracking-[0.25em] text-red-700 rounded-lg bg-black/60 backdrop-blur-sm shadow-[0_0_25px_rgba(185,28,28,0.45)]">
           DONE
         </div>
@@ -155,13 +136,18 @@ function SeminarCard({
 }
 
 function SeminarModal({
+  userRegisteredSeminars,
+  register,
   seminar,
   onClose,
 }: {
+  userRegisteredSeminars: string[];
+  register: (seminarId: string) => Promise<void>;
   seminar: SeminarData;
   onClose: () => void;
 }) {
-  const date = new Date(seminar.dateTime);
+  const seminarDate = new Date(seminar.dateTime);
+  const isPast = seminarDate < new Date();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -197,10 +183,9 @@ function SeminarModal({
 
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           <div className="relative w-40 h-40 flex-shrink-0">
-            <Image
+            <img
               src={seminar.speakerImage}
               alt={seminar.speaker}
-              fill
               className="rounded-xl object-cover border-2 border-cyan-500"
             />
           </div>
@@ -227,12 +212,12 @@ function SeminarModal({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t border-slate-700 pt-6 mb-6 text-sm text-slate-400">
           <div>
             📅{" "}
-            {date.toLocaleDateString("en-US", {
+            {seminarDate.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
             })}{" "}
             —{" "}
-            {date.toLocaleTimeString([], {
+            {seminarDate.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -243,7 +228,36 @@ function SeminarModal({
           </div>
         </div>
 
-        {!seminar.isPast ? null : (
+        {!isPast && seminar.isRegisterationNeeded && seminar.isActive && (
+          <div className="text-center">
+            {userRegisteredSeminars.includes(seminar._id) ? (
+              <div className="text-green-400 font-bold text-lg">
+                You are already onBoard!
+              </div>
+            ) : (
+              <button
+                onClick={() => register(seminar._id)}
+                className="inline-block bg-cyan-500 text-white px-6 py-3 rounded-full font-bold uppercase tracking-wider hover:bg-cyan-600 transition-colors"
+              >
+                Register Now
+              </button>
+            )}
+          </div>
+        )}
+
+        {!isPast && seminar.isActive && !seminar.isRegisterationNeeded && (
+          <div className="text-center text-green-400 font-bold text-lg">
+            No Registration Required - Join Us Live!
+          </div>
+        )}
+
+        {!isPast && !seminar.isActive && (
+          <div className="text-center text-yellow-400 font-bold text-lg">
+            Coming Soon
+          </div>
+        )}
+
+        {isPast && (
           <div className="text-center text-red-500 font-bold text-lg">
             Event Ended
           </div>
@@ -257,9 +271,94 @@ export default function SeminarsPage() {
   const [selectedSeminar, setSelectedSeminar] = useState<SeminarData | null>(
     null,
   );
+  const [loading, setLoading] = useState<boolean>(true);
+  const [userRegisteredSeminars, setUserRegisteredSeminars] = useState<
+    string[]
+  >([]);
+  const [seminars, setSeminars] = useState<SeminarData[]>([]);
 
-  const upcoming = seminars.filter((s) => !s.isPast);
-  const past = seminars.filter((s) => s.isPast);
+  useEffect(() => {
+    async function fetchSeminars() {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/seminar");
+        setSeminars(response.data.SeminarData);
+        setUserRegisteredSeminars(response.data.userRegisteredSeminars);
+      } catch (error) {
+        console.error("Failed to fetch seminar data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSeminars();
+  }, []);
+
+  const register = async (seminarId: string) => {
+    try {
+      const response = await axios.post("/api/seminar/registration", {
+        seminarId,
+      });
+      alert(response.data.message);
+      setUserRegisteredSeminars((prev) =>
+        prev.includes(seminarId) ? prev : [...prev, seminarId],
+      );
+    } catch (error: any) {
+      alert(error.response?.data?.error || "Failed to register for seminar");
+    }
+  };
+
+  const now = new Date();
+
+  const { upcoming, past } = useMemo(() => {
+    const now = new Date();
+
+    const upcomingSeminars = seminars
+      .filter((s) => new Date(s.dateTime) >= now)
+      .sort(
+        (a, b) =>
+          new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime(),
+      );
+
+    const pastSeminars = seminars
+      .filter((s) => new Date(s.dateTime) < now)
+      .sort(
+        (a, b) =>
+          new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+      );
+
+    return { upcoming: upcomingSeminars, past: pastSeminars };
+  }, [seminars]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-black text-white flex items-center justify-center">
+        <Navbar />
+
+        <div className="fixed inset-0 w-full h-full z-0">
+          <DotOrbit
+            width="100%"
+            height="100%"
+            colors={["#ffffff", "#006aff", "#fff675"]}
+            colorBack="#000000"
+            stepsPerColor={4}
+            size={0.2}
+            sizeRange={0.5}
+            spreading={1}
+            speed={0.5}
+            scale={0.35}
+          />
+        </div>
+
+        <Image
+          src="/among-us-thumbs-up.gif"
+          alt="Loading"
+          className="object-contain drop-shadow-2xl"
+          height={120}
+          width={120}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen relative">
@@ -292,7 +391,7 @@ export default function SeminarsPage() {
           <div className="grid md:grid-cols-2 gap-8">
             {upcoming.map((seminar) => (
               <SeminarCard
-                key={seminar.id}
+                key={seminar._id}
                 seminar={seminar}
                 onClick={() => setSelectedSeminar(seminar)}
               />
@@ -307,7 +406,7 @@ export default function SeminarsPage() {
           <div className="grid md:grid-cols-2 gap-8">
             {past.map((seminar) => (
               <SeminarCard
-                key={seminar.id}
+                key={seminar._id}
                 seminar={seminar}
                 onClick={() => setSelectedSeminar(seminar)}
               />
@@ -318,6 +417,8 @@ export default function SeminarsPage() {
 
       {selectedSeminar && (
         <SeminarModal
+          userRegisteredSeminars={userRegisteredSeminars}
+          register={register}
           seminar={selectedSeminar}
           onClose={() => setSelectedSeminar(null)}
         />
