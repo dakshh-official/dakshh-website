@@ -1,43 +1,6 @@
-import React from 'react';
+import { partners } from '@/constants/partners';
 import HandDrawnCard from './HandDrawnCard';
-
-interface Partner {
-  id: string;
-  partner_name: string;
-  logo_url: string;
-  website_url?: string;
-}
-
-const partners: Partner[] = [
-  {
-    id: '1',
-    partner_name: 'Aztex',
-    logo_url: '/1.png', 
-    website_url: 'https://example.com',
-  },
-  {
-    id: '2',
-    partner_name: 'Rooster Block',
-    logo_url: '/2.png',
-  },
-  {
-    id: '3',
-    partner_name: 'Stone Gold',
-    logo_url: '/3.png',
-    website_url: 'https://example.com',
-  },
-  {
-    id: '4',
-    partner_name: 'Mustang',
-    logo_url: '/4.png',
-  },
-  {
-    id: '5',
-    partner_name: 'Labs and Bros.',
-    logo_url: '/5.png',
-    website_url: 'https://example.com',
-  },
-];
+import { Partner } from '@/types/interface';
 
 export default function PartnersSection() {
   return (
@@ -66,9 +29,13 @@ function PartnerCard({ partner }: { partner: Partner }) {
           loading="lazy"
         />
       </div>
-      <h3 className="text-white text-center font-bold text-lg sm:text-xl tracking-wide group-hover:text-yellow-400 transition-colors duration-300 w-full wrap-break-words hyphens-auto px-1">
+      <h3 className="text-white text-center font-bold text-lg! sm:text-xl! tracking-wide group-hover:text-yellow-400 transition-colors duration-300 w-full wrap-break-words hyphens-auto px-1">
         {partner.partner_name}
       </h3>
+
+      <span className='text-gray-400'>
+        {partner.partner_type} Partner
+      </span>
     </div>
   );
 
