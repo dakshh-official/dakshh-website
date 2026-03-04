@@ -3,6 +3,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
 import { DotOrbit } from "@paper-design/shaders-react";
 import Crewmates from "../components/Crewmates";
@@ -10,9 +12,12 @@ import axios from "axios";
 import { SeminarData } from "@/types/interface";
 import SeminarCard from "../components/Seminars/SeminarCard";
 import SeminarModal from "../components/Seminars/SeminarModal";
+import ConfirmationModal from "../components/Events/modals/ConfirmationModal";
 import toast from "react-hot-toast";
 
 export default function SeminarsPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [selectedSeminar, setSelectedSeminar] = useState<SeminarData | null>(
     null,
   );
@@ -21,13 +26,15 @@ export default function SeminarsPage() {
     string[]
   >([]);
   const [seminars, setSeminars] = useState<SeminarData[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [pendingSeminarId, setPendingSeminarId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchSeminars() {
       setLoading(true);
       try {
         const response = await axios.get("/api/seminar");
-        console.log(response.data)
+        console.log(response.data);
         setSeminars(response.data.SeminarData);
         setUserRegisteredSeminars(response.data.userRegisteredSeminars);
       } catch (error: any) {
@@ -40,7 +47,22 @@ export default function SeminarsPage() {
     fetchSeminars();
   }, []);
 
-  const register = async (seminarId: string) => {
+  const openConfirmModal = (seminarId: string): void => {
+    if (!session) {
+      router.push("/auth?callbackUrl=/seminars");
+      return;
+    }
+    setPendingSeminarId(seminarId);
+    setShowConfirmModal(true);
+  };
+
+  const confirmRegistration = async (): Promise<void> => {
+    if (!pendingSeminarId) return;
+
+    setShowConfirmModal(false);
+    const seminarId = pendingSeminarId;
+    setPendingSeminarId(null);
+
     try {
       const response = await axios.post("/api/seminar/registration", {
         seminarId,
@@ -50,8 +72,19 @@ export default function SeminarsPage() {
         prev.includes(seminarId) ? prev : [...prev, seminarId],
       );
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to register for seminar");
+      toast.error(
+        error.response?.data?.error || "Failed to register for seminar",
+      );
     }
+  };
+
+  const register = async (seminarId: string): Promise<void> => {
+    if (!session) {
+      router.push("/auth?callbackUrl=/seminars");
+      return;
+    }
+    setPendingSeminarId(seminarId);
+    setShowConfirmModal(true);
   };
 
   const { upcoming, past } = useMemo(() => {
@@ -71,9 +104,9 @@ export default function SeminarsPage() {
       return new Date(2000 + year, month - 1, day, hours, minutes);
     };
 
-    const processedSeminars = seminars.map(s => ({
+    const processedSeminars = seminars.map((s) => ({
       ...s,
-      timestamp: parseSeminarDateTime(s.date, s.time).getTime()
+      timestamp: parseSeminarDateTime(s.date, s.time).getTime(),
     }));
 
     const upcomingSeminars = processedSeminars
@@ -181,8 +214,22 @@ export default function SeminarsPage() {
           register={register}
           seminar={selectedSeminar}
           onClose={() => setSelectedSeminar(null)}
+          isLoggedIn={!!session}
         />
       )}
+
+      <ConfirmationModal
+        open={showConfirmModal}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setPendingSeminarId(null);
+        }}
+        onConfirm={confirmRegistration}
+        title="Register for Seminar?"
+        message="Are you sure you want to deploy as a crewmate for this mission?"
+        confirmText="Launch Mission"
+        cancelText="Abort Mission"
+      />
     </div>
   );
 }

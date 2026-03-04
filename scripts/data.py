@@ -19,5 +19,7 @@ seminars_data = [
         "isActive": True,
         "isRegisterationNeeded": True,
         "registrations": [],
+        "meetLink": "https://meet.google.com/jti-rhyi-sfw",
+        "maxRegistrations": 95
     }
 ]

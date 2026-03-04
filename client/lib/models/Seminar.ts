@@ -36,6 +36,8 @@ const seminarSchema = new Schema(
       default: [],
     },
     venue: { type: String },
+    meetLink: { type: String },
+    maxRegistrations: { type: Number, default: 0 },
   },
   {
     collection: "Seminar",

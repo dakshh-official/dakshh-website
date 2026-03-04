@@ -375,6 +375,9 @@ interface SeminarData {
   time: string;
   mode: "online" | "offline";
   venue?: string;
+  meetLink?: string;
+  maxRegistrations?: number;
+  registrations?: string[];
   isActive?: boolean;
   isRegisterationNeeded?: boolean;
   club?: string;

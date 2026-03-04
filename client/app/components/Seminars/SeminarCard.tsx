@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { SeminarData } from "@/types/interface";
 import HandCard from "./HandCard";
-import { Calendar, MapPin, Quote, Users, Video } from "lucide-react";
+import { Calendar, MapPin, Quote, Users, Video, ArrowRight } from "lucide-react";
 
 function SeminarCard({
 	seminar,
@@ -29,7 +29,7 @@ function SeminarCard({
 
 	const statusStyles = isPast
 		? "border-slate-500 shadow-[4px_4px_0px_0px_rgba(100,116,139,1)] opacity-80"
-		: "border-cyan-400 shadow-[6px_6px_0px_0px_rgba(34,211,238,1)] hover:-translate-y-1 transition-transform";
+		: "border-cyan-400 shadow-[6px_6px_0px_0px_rgba(34,211,238,1)] hover:-translate-y-1 hover:scale-[1.015] hover:shadow-[8px_8px_0px_0px_rgba(34,211,238,1)] transition-all duration-300";
 
 	return (
 		<HandCard
@@ -96,9 +96,24 @@ function SeminarCard({
 				</div>
 			)}
 
-			<div className="absolute top-0 left-0 border bg-black/60 backdrop-blur-2xl w-full h-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white font-bold text-lg uppercase tracking-wider">
-				Click for details
-			</div>
+			{/* Improved hover overlay */}
+			{!isPast && (
+				<div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center gap-3 opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/65 backdrop-blur-sm border-2 border-cyan-400/60 rounded-xl">
+					<div className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-cyan-400 text-cyan-400 bg-black/50">
+						<ArrowRight size={22} />
+					</div>
+					<span className="text-white font-bold text-lg uppercase tracking-widest px-4 text-center">
+						View Details
+					</span>
+					<span className="text-cyan-400 text-sm tracking-wider">Click to open</span>
+				</div>
+			)}
+
+			{isPast && (
+				<div className="absolute top-0 left-0 border bg-black/60 backdrop-blur-2xl w-full h-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white font-bold text-lg uppercase tracking-wider">
+					View Details
+				</div>
+			)}
 
 			{isPast && (
 				<div className="absolute top-8 right-6 rotate-[-14deg] border-[3px] border-red-700 px-6 py-2 text-3xl font-black uppercase tracking-[0.25em] text-red-700 rounded-lg bg-black/60 backdrop-blur-sm shadow-[0_0_25px_rgba(185,28,28,0.45)]">
