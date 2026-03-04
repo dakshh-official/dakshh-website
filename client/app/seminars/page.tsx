@@ -183,9 +183,10 @@ function SeminarModal({
 
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           <div className="relative w-40 h-40 flex-shrink-0">
-            <img
+            <Image
               src={seminar.speakerImage}
               alt={seminar.speaker}
+              fill
               className="rounded-xl object-cover border-2 border-cyan-500"
             />
           </div>
@@ -329,6 +330,7 @@ export default function SeminarsPage() {
     return { upcoming: upcomingSeminars, past: pastSeminars };
   }, [seminars]);
 
+
   if (loading) {
     return (
       <div className="min-h-screen w-full bg-black text-white flex items-center justify-center">
@@ -399,20 +401,22 @@ export default function SeminarsPage() {
           </div>
         </section>
 
-        <section>
-          <h2 className="text-3xl font-bold mb-8 text-gray-400">
-            Past Seminars
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {past.map((seminar) => (
-              <SeminarCard
-                key={seminar._id}
-                seminar={seminar}
-                onClick={() => setSelectedSeminar(seminar)}
-              />
-            ))}
-          </div>
-        </section>
+        {past.length > 0 && (
+          <section>
+            <h2 className="text-3xl font-bold mb-8 text-gray-400">
+              Past Seminars
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              {past.map((seminar) => (
+                <SeminarCard
+                  key={seminar._id}
+                  seminar={seminar}
+                  onClick={() => setSelectedSeminar(seminar)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {selectedSeminar && (
