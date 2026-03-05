@@ -75,16 +75,13 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    console.log(parsed.data);
-
-    const { avatar, username, amongUsScore, fullName, phoneNumber, college, stream } = parsed.data;
+    const { avatar, username, fullName, phoneNumber, college, stream } = parsed.data;
 
     await connect();
 
     const update: Record<string, unknown> = {};
     if (avatar !== undefined) update.avatar = avatar;
     if (username !== undefined) update.username = username.trim();
-    if (amongUsScore !== undefined) update.amongUsScore = amongUsScore;
     if (fullName !== undefined) update.fullName = fullName.trim();
     if (phoneNumber !== undefined) update.phoneNumber = phoneNumber.trim();
     if (college !== undefined) update.college = college.trim();
