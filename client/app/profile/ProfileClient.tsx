@@ -86,8 +86,26 @@ export default function ProfileClient({
     if (activeTab === "arcade") fetchLeaderboard();
   }, [activeTab]);
 
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/user/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setProfile((p) => ({
+          ...p,
+          amongUsScore: data.amongUsScore ?? 0,
+        }));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
-    if (!gameOpen && activeTab === "arcade") fetchLeaderboard();
+    if (!gameOpen && activeTab === "arcade") {
+      fetchLeaderboard();
+      fetchProfile();
+    }
   }, [gameOpen, activeTab]);
 
   useEffect(() => {
@@ -120,6 +138,7 @@ export default function ProfileClient({
           stream: data.stream ?? "",
           isProfileComplete: data.isProfileComplete ?? false,
           qrPayload: data.qrPayload ?? "",
+          amongUsScore: data.amongUsScore ?? 0,
         });
 
         setFormData({

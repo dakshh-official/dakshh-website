@@ -36,7 +36,6 @@ export const signInSchema = z.object({
 export const profileUpdateSchema = z.object({
   avatar: z.number().min(1).max(10).optional(),
   username: registerStep1Schema.shape.username.optional(),
-  amongUsScore: z.number().optional(),
   fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
   phoneNumber: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits").optional(),
   college: z.string().min(2, "College name is too short").optional(),

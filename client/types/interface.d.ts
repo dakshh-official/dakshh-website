@@ -312,6 +312,7 @@ export interface ProfileData {
   stream?: string;
   isProfileComplete?: boolean;
   qrPayload?: string;
+  amongUsScore?: number;
 }
 
 export interface LeaderBoard {

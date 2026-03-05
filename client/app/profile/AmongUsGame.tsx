@@ -115,6 +115,9 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
     const [renderImposters, setRenderImposters] = useState<Imposter[]>([]);
     const [activeEffectHud, setActiveEffectHud] = useState<{ effect: ActiveEffect; endTime: number } | null>(null);
     const hasTriggeredAutoLogout = useRef(false);
+    const gameSessionIdRef = useRef(crypto.randomUUID());
+    const eventsRef = useRef<Array<{ type: "COIN" | "BOMB" | "SUPERBOMB" | "IMPOSTER"; t: number }>>([]);
+    const startScoreRef = useRef(0);
     const [, setHudTick] = useState(0);
     const triggerAutoLogout = () => {
         if (hasTriggeredAutoLogout.current) return;
@@ -402,6 +405,7 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                     playerHitbox.y + playerHitbox.height > impHitbox.y
                 );
                 if (isColliding) {
+                    eventsRef.current.push({ type: "IMPOSTER", t: now });
                     const explosionX = (playerHitbox.x + impHitbox.x + impHitbox.width) / 2 - 40;
                     const explosionY = (playerHitbox.y + impHitbox.y + impHitbox.height) / 2 - 40;
                     state.explosionAt = { x: explosionX, y: explosionY, spawnTime: now };
@@ -470,6 +474,7 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                             spawnTime: Date.now()
                         });
                     } else if (item.type === "COIN") {
+                        eventsRef.current.push({ type: "COIN", t: now });
                         currentScoreChange += 10;
                         state.floatingTexts.push({
                             id: Date.now() + Math.random(),
@@ -480,6 +485,7 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                             spawnTime: Date.now()
                         });
                     } else if (item.type === "BOMB") {
+                        eventsRef.current.push({ type: "BOMB", t: now });
                         currentScoreChange -= 10;
                         state.floatingTexts.push({
                             id: Date.now() + Math.random(),
@@ -490,6 +496,7 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                             spawnTime: Date.now()
                         });
                     } else if (item.type === "SUPERBOMB") {
+                        eventsRef.current.push({ type: "SUPERBOMB", t: now });
                         currentScoreChange -= 50;
                         state.floatingTexts.push({
                             id: Date.now() + Math.random(),
@@ -592,15 +599,12 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
         return () => { document.body.style.overflow = ""; };
     }, []);
 
-    // Track score in ref for reliable unmount saving
+    const isLoaded = useRef(false);
     const scoreRef = useRef(score);
-    const isLoaded = useRef(false); // Guard against saving before loading
-
     useEffect(() => {
         scoreRef.current = score;
     }, [score]);
 
-    // Fetch initial score
     useEffect(() => {
         fetch("/api/auth/session", { cache: "no-store" })
             .then(sessionRes => {
@@ -621,29 +625,29 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                 return res.json();
             })
             .then(data => {
-                if (data.amongUsScore !== undefined) {
-                    setScore(data.amongUsScore);
-                    scoreRef.current = data.amongUsScore;
-                }
-                isLoaded.current = true; // Mark as loaded
+                const loadedScore = data.amongUsScore ?? 0;
+                setScore(loadedScore);
+                startScoreRef.current = loadedScore;
+                isLoaded.current = true;
             })
-            .catch(err => {
-                console.error("Failed to fetch score", err);
-                isLoaded.current = true; // Allow saving even if fetch failed (start from 0)
+            .catch(() => {
+                isLoaded.current = true;
             });
     }, []);
 
-    // Save score on unmount
     useEffect(() => {
         return () => {
-            // Only save if we actually loaded data, to avoid overwriting with 0 on immediate close
-            if (!isLoaded.current) return;
+            if (!isLoaded.current || eventsRef.current.length === 0) return;
 
-            const finalScore = scoreRef.current;
-            fetch("/api/user/profile", {
-                method: "PATCH",
+            const payload = {
+                gameSessionId: gameSessionIdRef.current,
+                startScore: startScoreRef.current,
+                events: eventsRef.current,
+            };
+            fetch("/api/arcade/score", {
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amongUsScore: finalScore }),
+                body: JSON.stringify(payload),
                 keepalive: true,
             })
                 .then((res) => {
@@ -651,30 +655,9 @@ export default function AmongUsGame({ onClose }: { onClose: () => void }) {
                         triggerAutoLogout();
                     }
                 })
-                .catch(err => console.error("Failed to save score", err));
+                .catch(() => {});
         };
     }, []);
-
-    // Auto-save periodically (debounce)
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            if (!isLoaded.current) return;
-
-            fetch("/api/user/profile", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amongUsScore: score })
-            })
-                .then((res) => {
-                    if (res.status === 404) {
-                        triggerAutoLogout();
-                    }
-                })
-                .catch(err => console.error("Failed to auto-save score", err));
-        }, 5000);
-
-        return () => clearTimeout(timeout);
-    }, [score]);
 
 
     return (
