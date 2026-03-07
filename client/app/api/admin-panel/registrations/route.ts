@@ -64,12 +64,15 @@ export async function GET(request: Request) {
     }
 
     const regs = await Registration.find(query)
-      .populate("participant", "username email fullName college phoneNumber avatar")
-
+      .populate(
+        "participant",
+        "username email fullName college phoneNumber avatar roles provider amongUsScore emailVerified verified stream isProfileComplete createdAt updatedAt"
+      )
       .populate("eventId", "eventName")
+      .populate("checkedInBy", "username email")
       .populate({
         path: "teamId",
-        select: "teamCode teamName teamLeader team",
+        select: "teamCode teamName teamLeader team paymentStatus",
         populate: {
           path: "team",
           select: "username email fullName college phoneNumber avatar",
@@ -79,21 +82,40 @@ export async function GET(request: Request) {
       .lean();
 
     const events = await Event.find({})
-      .select("_id eventName")
+      .select("_id eventName minMembersPerTeam")
       .sort({ eventName: 1 })
       .lean();
 
     return NextResponse.json({
       registrations: regs.map((r) => {
         const rAny = r as Record<string, unknown>;
-        const participant = rAny.participant as { _id?: unknown; username?: string; email?: string; fullName?: string; college?: string; phoneNumber?: string; avatar?: number } | null;
+        const participant = rAny.participant as {
+          _id?: unknown;
+          username?: string;
+          email?: string;
+          fullName?: string;
+          college?: string;
+          phoneNumber?: string;
+          avatar?: number;
+          roles?: string[];
+          provider?: string;
+          amongUsScore?: number;
+          emailVerified?: Date;
+          verified?: boolean;
+          stream?: string;
+          isProfileComplete?: boolean;
+          createdAt?: Date;
+          updatedAt?: Date;
+        } | null;
         const event = rAny.eventId as { _id?: unknown; eventName?: string } | null;
-        const team = rAny.teamId as { 
-          teamCode?: string; 
+        const team = rAny.teamId as {
+          teamCode?: string;
           teamName?: string;
+          paymentStatus?: string;
           team?: Array<{ _id: unknown; username?: string; email?: string; fullName?: string; college?: string; phoneNumber?: string; avatar?: number }>;
           teamLeader?: unknown;
         } | null;
+        const checkedInByUser = rAny.checkedInBy as { username?: string; email?: string } | null;
         const eventIdRaw = event?._id ?? rAny.eventId;
         return {
           id: String(rAny._id ?? ""),
@@ -103,6 +125,7 @@ export async function GET(request: Request) {
           teamId: rAny.teamId ? String((rAny.teamId as { _id?: unknown })?._id ?? rAny.teamId) : null,
           teamCode: team?.teamCode ?? null,
           teamName: team?.teamName ?? null,
+          teamPaymentStatus: team?.paymentStatus ?? null,
           teamMembers: team?.team?.map(m => ({
             id: String(m._id ?? ""),
             username: m.username ?? "",
@@ -114,15 +137,27 @@ export async function GET(request: Request) {
             isLeader: String(m._id) === String((team.teamLeader as { _id?: unknown })?._id ?? team.teamLeader)
           })) ?? [],
           participantId: participant ? String(participant._id ?? "") : String(rAny.participant ?? ""),
+          participantUsername: participant?.username ?? "",
           participantName: participant?.fullName || participant?.username || "",
           participantEmail: participant?.email ?? "",
           participantCollege: participant?.college ?? "",
           participantPhone: participant?.phoneNumber ?? "",
           participantAvatar: participant?.avatar ?? null,
+          participantRoles: participant?.roles ?? [],
+          participantProvider: participant?.provider ?? "",
+          participantAmongUsScore: participant?.amongUsScore ?? 0,
+          participantEmailVerified: participant?.emailVerified ?? null,
+          participantVerified: participant?.verified ?? false,
+          participantStream: participant?.stream ?? "",
+          participantIsProfileComplete: participant?.isProfileComplete ?? false,
+          participantCreatedAt: participant?.createdAt ?? null,
+          participantUpdatedAt: participant?.updatedAt ?? null,
           verified: rAny.verified ?? false,
           checkedIn: rAny.checkedIn ?? false,
           checkedInAt: rAny.checkedInAt ?? null,
+          checkedInBy: checkedInByUser ? (checkedInByUser.username || checkedInByUser.email || String(rAny.checkedInBy)) : null,
           foodServedCount: rAny.foodServedCount ?? 0,
+          lastFoodServedAt: rAny.lastFoodServedAt ?? null,
           createdAt: rAny.createdAt,
           updatedAt: rAny.updatedAt,
         };
@@ -130,6 +165,7 @@ export async function GET(request: Request) {
       events: events.map((e) => ({
         id: String((e as { _id?: unknown })._id ?? ""),
         eventName: (e as { eventName?: string }).eventName ?? "",
+        minMembersPerTeam: (e as { minMembersPerTeam?: number }).minMembersPerTeam ?? 1,
       })),
     });
   } catch (err) {

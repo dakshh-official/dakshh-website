@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import HandDrawnCard from "@/app/components/HandDrawnCard";
 import { useAmongUsToast } from "@/app/components/ui/among-us-toast";
+import * as XLSX from "xlsx";
 
 import TeamDetailsModal from "./TeamDetailsModal";
 
@@ -38,11 +39,26 @@ interface RegistrationRow {
   foodServedCount: number;
   createdAt: string;
   updatedAt: string;
+  // Extended fields from API for export
+  teamPaymentStatus?: string | null;
+  participantUsername?: string;
+  participantRoles?: string[];
+  participantProvider?: string;
+  participantAmongUsScore?: number;
+  participantEmailVerified?: string | Date | null;
+  participantVerified?: boolean;
+  participantStream?: string;
+  participantIsProfileComplete?: boolean;
+  participantCreatedAt?: string | Date | null;
+  participantUpdatedAt?: string | Date | null;
+  checkedInBy?: string | null;
+  lastFoodServedAt?: string | Date | null;
 }
 
 interface EventOption {
   id: string;
   eventName: string;
+  minMembersPerTeam?: number;
 }
 
 interface AdminRegistrationsClientProps {
@@ -72,7 +88,19 @@ export default function AdminRegistrationsClient({
     teamName: string | null;
     members: TeamMember[];
   } | null>(null);
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
   const toast = useAmongUsToast();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(e.target as Node)) {
+        setExportDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSort = (key: keyof RegistrationRow | "participant") => {
     setSortKey(key);
@@ -89,6 +117,9 @@ export default function AdminRegistrationsClient({
     } else if (key === "checkedInAt") {
       va = a.checkedInAt ? new Date(a.checkedInAt).getTime() : 0;
       vb = b.checkedInAt ? new Date(b.checkedInAt).getTime() : 0;
+    } else if (key === "createdAt") {
+      va = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      vb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     } else {
       va = ((a as unknown as Record<string, unknown>)[key] as string | number | boolean | null) ?? "";
       vb = ((b as unknown as Record<string, unknown>)[key] as string | number | boolean | null) ?? "";
@@ -258,6 +289,118 @@ export default function AdminRegistrationsClient({
 
   const teamList = Object.values(teams);
 
+  const formatDate = (d: string | Date | null | undefined): string => {
+    if (!d) return "";
+    const date = typeof d === "string" ? new Date(d) : d;
+    return isNaN(date.getTime()) ? "" : date.toISOString();
+  };
+
+  const buildExportRow = (reg: RegistrationRow): Record<string, string | number | boolean> => {
+    const teamMembersStr = reg.teamMembers?.length
+      ? reg.teamMembers
+          .map((m) => `${m.fullName || m.username || "?"} (${m.email || ""})`)
+          .join("; ")
+      : "";
+    return {
+      id: reg.id,
+      eventId: reg.eventId,
+      eventName: reg.eventName,
+      isInTeam: reg.isInTeam,
+      teamId: reg.teamId ?? "",
+      teamCode: reg.teamCode ?? "",
+      teamName: reg.teamName ?? "",
+      teamPaymentStatus: reg.teamPaymentStatus ?? "",
+      teamMembers: teamMembersStr,
+      participantId: reg.participantId,
+      participantUsername: reg.participantUsername ?? reg.participantName ?? "",
+      participantEmail: reg.participantEmail ?? "",
+      participantFullName: reg.participantName ?? "",
+      participantCollege: reg.participantCollege ?? "",
+      participantPhone: reg.participantPhone ?? "",
+      participantRoles: Array.isArray(reg.participantRoles) ? reg.participantRoles.join(", ") : "",
+      participantProvider: reg.participantProvider ?? "",
+      participantAmongUsScore: reg.participantAmongUsScore ?? 0,
+      participantEmailVerified: formatDate(reg.participantEmailVerified),
+      participantVerified: reg.participantVerified ?? false,
+      participantStream: reg.participantStream ?? "",
+      participantIsProfileComplete: reg.participantIsProfileComplete ?? false,
+      participantCreatedAt: formatDate(reg.participantCreatedAt),
+      participantUpdatedAt: formatDate(reg.participantUpdatedAt),
+      verified: reg.verified,
+      checkedIn: reg.checkedIn,
+      checkedInAt: formatDate(reg.checkedInAt),
+      checkedInBy: reg.checkedInBy ?? "",
+      foodServedCount: reg.foodServedCount,
+      lastFoodServedAt: formatDate(reg.lastFoodServedAt),
+      createdAt: formatDate(reg.createdAt),
+      updatedAt: formatDate(reg.updatedAt),
+    };
+  };
+
+  const escapeCsvValue = (v: string | number | boolean): string => {
+    const s = String(v);
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  };
+
+  const handleExportCSV = () => {
+    setExportDropdownOpen(false);
+    const rows = sortedRegistrations.map(buildExportRow);
+    if (rows.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    const headers = Object.keys(rows[0]);
+    const csvLines = [
+      headers.join(","),
+      ...rows.map((r) => headers.map((h) => escapeCsvValue(r[h])).join(",")),
+    ];
+    const csv = csvLines.join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const eventName = eventFilter ? events.find((e) => e.id === eventFilter)?.eventName : "";
+    a.download = eventName
+      ? `registrations-${eventName.replace(/[^a-zA-Z0-9]/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`
+      : `registrations-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as CSV");
+  };
+
+  const handleExportXLSX = () => {
+    setExportDropdownOpen(false);
+    const rows = sortedRegistrations.map(buildExportRow);
+    if (rows.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    const uniqueEvents = [...new Set(rows.map((r) => r.eventName as string))];
+    const wb = XLSX.utils.book_new();
+
+    if (uniqueEvents.length > 1) {
+      uniqueEvents.forEach((eventName) => {
+        const eventRows = rows.filter((r) => r.eventName === eventName);
+        const ws = XLSX.utils.json_to_sheet(eventRows);
+        const safeName = eventName.replace(/[:\\/?*\[\]]/g, "").slice(0, 31);
+        XLSX.utils.book_append_sheet(wb, ws, safeName || "Sheet");
+      });
+    } else {
+      const ws = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, "Registrations");
+    }
+
+    const eventName = eventFilter ? events.find((e) => e.id === eventFilter)?.eventName : "";
+    const filename = eventName
+      ? `registrations-${eventName.replace(/[^a-zA-Z0-9]/g, "-")}-${new Date().toISOString().slice(0, 10)}.xlsx`
+      : `registrations-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast.success("Exported as XLSX");
+  };
+
   return (
     <>
       {selectedTeam && (
@@ -355,6 +498,37 @@ export default function AdminRegistrationsClient({
               placeholder="Search..."
             />
           </div>
+
+          <div className="relative flex flex-col ml-auto" ref={exportDropdownRef}>
+            <span className="block text-sm font-semibold mb-1 invisible select-none" aria-hidden="true">
+              &nbsp;
+            </span>
+            <button
+              type="button"
+              onClick={() => setExportDropdownOpen((o) => !o)}
+              className="hand-drawn-button min-w-[140px] px-5 py-3 text-base"
+            >
+              Export
+            </button>
+            {exportDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded border border-white/20 bg-black/95 py-1 shadow-lg">
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="block w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10"
+                >
+                  Export as CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportXLSX}
+                  className="block w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10"
+                >
+                  Export as XLSX
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         {!loading && registrations.length > 0 && (
           <div className="flex flex-wrap gap-4 mb-4 p-3 rounded bg-black/20 border border-white/10">
@@ -402,6 +576,15 @@ export default function AdminRegistrationsClient({
                 <div className="text-sm text-cyan mb-3">{team.eventName}</div>
                 
                 <div className="flex flex-wrap gap-2 text-xs">
+                  {(() => {
+                    const minRequired = events.find((e) => e.eventName === team.eventName)?.minMembersPerTeam ?? 1;
+                    const isIncomplete = team.members.length < minRequired;
+                    return isIncomplete ? (
+                      <span className="bg-amber-500/30 text-amber-300 px-2 py-1 rounded font-semibold">
+                        INCOMPLETE
+                      </span>
+                    ) : null;
+                  })()}
                   <span className="bg-white/5 px-2 py-1 rounded text-white/70">
                     👥 {team.members.length} members
                   </span>
@@ -423,6 +606,7 @@ export default function AdminRegistrationsClient({
               <thead>
                 <tr className="border-b-2 border-white/30">
                   <SortTh col="eventName" label="Event" />
+                  <SortTh col="createdAt" label="Registered at" />
                   <SortTh col="participant" label="Participant" />
                   <SortTh col="teamName" label="Team" />
                   <SortTh col="teamCode" label="Team code" />
@@ -439,6 +623,11 @@ export default function AdminRegistrationsClient({
                 {sortedRegistrations.map((reg) => (
                   <tr key={reg.id} className="border-b border-white/10">
                     <td className="py-2 pr-3 text-white">{reg.eventName}</td>
+                    <td className="py-2 pr-3 text-white/70 text-xs">
+                      {reg.createdAt
+                        ? new Date(reg.createdAt).toLocaleString()
+                        : "-"}
+                    </td>
                     <td className="py-2 pr-3 text-white/90">
                       <div>{reg.participantName || reg.participantEmail || "-"}</div>
                       <div className="text-white/60 text-xs">
