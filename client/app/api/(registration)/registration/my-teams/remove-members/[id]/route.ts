@@ -27,7 +27,6 @@ export async function PATCH(
             );
         }
 
-        console.log(session.user.id, teamData.teamLeader);
         if (session.user.id !== teamData.teamLeader.toString()) {
             return NextResponse.json(
                 { error: "Only Team Leader can update the team" },
