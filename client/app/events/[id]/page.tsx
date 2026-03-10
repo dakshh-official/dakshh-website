@@ -12,6 +12,7 @@ import BackVentButton from "@/app/components/Events/BackVentButton";
 
 import RulesModal from "@/app/components/Events/modals/RulesModal";
 import PocModal from "@/app/components/Events/modals/PocModal";
+import InactiveEventModal from "@/app/components/Events/modals/InactiveEventModal";
 import { MessageSquare, ScrollText, FileText } from "lucide-react";
 import { EventDetails } from "@/types/interface";
 import CreateTeamModal from "@/app/components/Events/modals/CreateTeamModal";
@@ -46,6 +47,7 @@ const EventPage = () => {
   const [showPoc, setShowPoc] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [showSoloConfirm, setShowSoloConfirm] = useState(false);
+  const [showInactiveModal, setShowInactiveModal] = useState(false);
   const [completingPayment, setCompletingPayment] = useState(false);
   const [unstopLinks, setUnstopLinks] = useState<Record<string, string>>({});
 
@@ -116,6 +118,12 @@ const EventPage = () => {
       return () => clearTimeout(timer);
     }
   }, [loading]);
+
+  useEffect(() => {
+    if (!loading && event && !event.isActive) {
+      setShowInactiveModal(true);
+    }
+  }, [loading, event?.isActive]);
 
   const handleRegistrationResponse = async (registration: Response) => {
     const data = await registration.json().catch(() => ({}));
@@ -513,7 +521,7 @@ const EventPage = () => {
                           className="hand-drawn-button text-xl px-12 py-4 cursor-not-allowed w-full sm:w-auto opacity-80"
                           disabled
                         >
-                          COMING SOON
+                          Registration Closed
                         </button>
                       </div>
                     ) : event.isTeamEvent ? (
@@ -771,6 +779,14 @@ const EventPage = () => {
         confirmText="Launch Mission"
         cancelText="Abort Mission"
       />
+
+      {!event.isActive && (
+        <InactiveEventModal
+          open={showInactiveModal}
+          onClose={() => setShowInactiveModal(false)}
+          eventDate={event.date}
+        />
+      )}
     </div>
   );
 };
