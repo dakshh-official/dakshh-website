@@ -75,9 +75,13 @@ export async function POST(req: NextRequest) {
     // Increment attempts
     attempt.attempts += 1;
 
-    // Hash the submitted flag and compare against the stored hash
-    const submittedHash = hashFlag(flag);
-    if (submittedHash === challenge.flagHash) {
+    // Support both legacy plain flag storage and hashed flag storage.
+    const normalizedFlag = String(flag).trim();
+    const isRawMatch = normalizedFlag === challenge.flagHash;
+    const submittedHash = hashFlag(normalizedFlag);
+    const isHashMatch = submittedHash === challenge.flagHash;
+
+    if (isRawMatch || isHashMatch) {
       // Correct!
       attempt.solved = true;
       attempt.solvedBy = userId || null;
