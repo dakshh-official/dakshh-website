@@ -5,6 +5,14 @@ import CTFChallenge from "@/lib/models/CTFChallenge";
 import CTFAttempt from "@/lib/models/Attempt";
 import CTFTeamScore from "@/lib/models/Team";
 
+function normalizeFlag(value: string): string {
+  return value
+    .trim()
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[‐‑‒–—−]/g, "-");
+}
+
 function hashFlag(flag: string): string {
   return crypto.createHash("sha256").update(flag.trim()).digest("hex");
 }
@@ -76,10 +84,11 @@ export async function POST(req: NextRequest) {
     attempt.attempts += 1;
 
     // Support both legacy plain flag storage and hashed flag storage.
-    const normalizedFlag = String(flag).trim();
-    const isRawMatch = normalizedFlag === challenge.flagHash;
-    const submittedHash = hashFlag(normalizedFlag);
-    const isHashMatch = submittedHash === challenge.flagHash;
+    const normalizedSubmittedFlag = normalizeFlag(String(flag));
+    const normalizedStoredFlag = normalizeFlag(String(challenge.flagHash || ""));
+    const isRawMatch = normalizedSubmittedFlag === normalizedStoredFlag;
+    const submittedHash = hashFlag(String(flag));
+    const isHashMatch = submittedHash === String(challenge.flagHash || "").trim();
 
     if (isRawMatch || isHashMatch) {
       // Correct!
@@ -105,6 +114,17 @@ export async function POST(req: NextRequest) {
         points: challenge.points,
       });
     }
+
+    // Wrong flag: log the submitted value and comparison logic for debugging.
+    console.warn("[submit] incorrect flag submission", {
+      teamId,
+      challengeId,
+      submittedFlag: normalizedSubmittedFlag,
+      isRawMatch,
+      submittedHash,
+      isHashMatch,
+      storedFlagHash: normalizedStoredFlag,
+    });
 
     // Wrong flag
     if (attempt.attempts >= MAX_ATTEMPTS_BEFORE_LOCK) {
